@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monolith/accessibility.schema.json",
+  "title": "Accessibility",
+  "type": "object",
+  "required": ["inferred", "wcagTarget", "contrastMinima", "focusOrderRule", "keyboardFirst"],
+  "properties": {
+    "inferred": { "type": "boolean" },
+    "wcagTarget": { "enum": ["2.1 AA", "2.1 AAA", "2.2 AA", "2.2 AAA"] },
+    "contrastMinima": {
+      "type": "object",
+      "properties": {
+        "body":   { "type": "number", "minimum": 3 },
+        "large":  { "type": "number", "minimum": 3 },
+        "ui":     { "type": "number", "minimum": 3 }
+      }
+    },
+    "focusOrderRule": { "type": "string" },
+    "keyboardFirst": { "type": "boolean" },
+    "landmarkRequirements": { "type": "array", "items": { "type": "string" } },
+    "evidence": { "type": "array", "items": { "type": "string" } }
+  }
+}

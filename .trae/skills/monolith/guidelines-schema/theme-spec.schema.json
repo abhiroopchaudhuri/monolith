@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "monolith/theme-spec.schema.json",
+  "title": "theme-spec.json",
+  "description": "The canonical normalized theme format for monolith. Any theming input (color palette, CSS file, Tailwind config, Figma variables export, design-tokens.json, brand PDF extracts) is normalized INTO this shape. Emitted by `theming-resolver`. Consumed by `lead-designer`, `aesthetic-director`, `developer`, `design-qa`. Adheres to the three-tier architecture: primitives (raw scales) → semantics (UI roles) → bridge (adapter-facing). Cross-referenced by rules 19 (premium-aesthetic-standard), 21 (theming-input-normalization), 22 (ds-themeability-taxonomy).",
+  "type": "object",
+  "required": ["$version", "source", "primitives", "semantics", "bridge", "themeability"],
+  "properties": {
+    "$version": { "const": "1.0" },
+
+    "source": {
+      "type": "object",
+      "description": "Where the theme came from — for audit.",
+      "required": ["inputs", "ds", "resolvedAt"],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "description": "Each theming input provided by the user, normalized.",
+          "items": {
+            "type": "object",
+            "required": ["kind", "ref"],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ds-defaults",
+                  "palette-json",
+                  "palette-css",
+                  "tailwind-config",
+                  "design-tokens-json",
+                  "figma-variables-export",
+                  "brand-pdf-extract",
+                  "brand-guide-url",
+                  "inline"
+                ]
+              },
+              "ref": { "type": "string", "description": "Path, URL, or 'inline'." },
+              "coverage": {
+                "type": "array",
+                "description": "Which tiers this input contributed to (primitives / semantics / both).",
+                "items": { "enum": ["primitives", "semantics", "typography", "motion", "radii", "shadows", "spacing"] }
+              }
+            }
+          }
+        },
+        "ds": {
+          "type": "object",
+          "required": ["name", "sourceKind"],
+          "properties": {
+            "name": { "type": "string" },
+            "sourceKind": { "enum": ["mcp", "repo", "both"] },
+            "version": { "type": "string" }
+          }
+        },
+        "resolvedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "primitives": {
+      "type": "object",
+      "description": "Tier 1 — raw value scales. No UI meaning. Model: primitives.css architecture, generalized.",
+      "required": ["color", "type", "space", "radius", "shadow", "motion"],
+      "properties": {
+        "color": {
+          "type": "object",
+          "description": "Named hues with 10–14 stops each, expressed in OKLCH + hex.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["oklch", "hex"],
+              "properties": {
+                "oklch": { "type": "string", "pattern": "^oklch\\(.*\\)$" },
+                "hex": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+              }
+            }
+          },
+          "examples": [
+            {
+              "stone": {
+                "100": { "oklch": "oklch(0.99 0.005 255)", "hex": "#F8F9FA" },
+                "1400": { "oklch": "oklch(0.14 0.01 255)", "hex": "#0B0D10" }
+              },
+              "brand": {
+                "600": { "oklch": "oklch(0.55 0.14 255)", "hex": "#2057B5" }
+              }
+            }
+          ]
+        },
+        "type": {
+          "type": "object",
+          "required": ["families", "scale", "weights"],
+          "properties": {
+            "families": {
+              "type": "object",
+              "properties": {
+                "sans": { "type": "string" },
+                "mono": { "type": "string" },
+                "display": { "type": "string" }
+              },
+              "required": ["sans"]
+            },
+            "scale": {
+              "type": "object",
+              "required": ["ratio", "base", "sizes"],
+              "properties": {
+                "ratio": { "enum": [1.2, 1.25, 1.333] },
+                "base": { "type": "integer", "description": "Base size in px (typically 14 or 16)." },
+                "sizes": {
+                  "type": "array",
+                  "minItems": 4,
+                  "items": { "type": "object", "required": ["name", "px"], "properties": { "name": { "type": "string" }, "px": { "type": "integer" } } }
+                }
+              }
+            },
+            "weights": { "type": "array", "items": { "type": "integer" }, "minItems": 1, "maxItems": 3 },
+            "tracking": { "type": "object", "additionalProperties": { "type": "string" } },
+            "tabularNumsEnabled": { "type": "boolean", "const": true }
+          }
+        },
+        "space": {
+          "type": "array",
+          "description": "Spacing scale on 8px grid. Disallow 6/10/14/18/22.",
+          "items": { "type": "integer" },
+          "examples": [[4, 8, 12, 16, 24, 32, 48, 64, 96]]
+        },
+        "radius": {
+          "type": "object",
+          "required": ["sm", "md", "lg"],
+          "properties": {
+            "sm": { "type": "integer", "description": "Input / chip / small button (4–6px)." },
+            "md": { "type": "integer", "description": "Card / button-large (8–10px)." },
+            "lg": { "type": "integer", "description": "Modal / sheet (12–16px)." },
+            "xl": { "type": "integer" }
+          }
+        },
+        "shadow": {
+          "type": "object",
+          "required": ["t1", "t2", "t3"],
+          "properties": {
+            "t1": { "type": "string", "description": "Resting elevation." },
+            "t2": { "type": "string", "description": "Hovering (popovers, dropdowns)." },
+            "t3": { "type": "string", "description": "Floating (modals, sheets)." }
+          }
+        },
+        "motion": {
+          "type": "object",
+          "required": ["easeOut", "easeIn", "durations"],
+          "properties": {
+            "easeOut": { "const": "cubic-bezier(0.16, 1, 0.3, 1)" },
+            "easeIn": { "const": "cubic-bezier(0.7, 0, 0.84, 0)" },
+            "durations": {
+              "type": "object",
+              "required": ["fast", "normal", "slow"],
+              "properties": {
+                "fast": { "type": "integer", "description": "120–180ms." },
+                "normal": { "type": "integer", "description": "180–220ms." },
+                "slow": { "type": "integer", "description": "220–320ms." }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "semantics": {
+      "type": "object",
+      "description": "Tier 2 — UI roles mapped to primitive references. Light + dark mode. Model: semantics.css architecture, generalized.",
+      "required": ["light"],
+      "properties": {
+        "light": { "$ref": "#/$defs/semanticSet" },
+        "dark":  { "$ref": "#/$defs/semanticSet" }
+      }
+    },
+
+    "bridge": {
+      "type": "object",
+      "description": "Tier 3 — adapter-facing token-reference map. How the DS consumes the semantics. Multiple adapters may emit different bridge fragments.",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "css-vars-root",
+            "css-vars-plus-tailwind-theme",
+            "themeprovider-object",
+            "tokens-json-export",
+            "styled-system-theme",
+            "chakra-theme",
+            "mui-theme",
+            "spectrum-theme",
+            "ds-specific-adapter"
+          ]
+        },
+        "cssVarPrefix": {
+          "type": "string",
+          "description": "e.g. 'ds', 'app', 'phase1'. Defaults to `--ds-`."
+        },
+        "tailwindThemeBlock": { "type": "string", "description": "Full @theme { … } Tailwind v4 block, when applicable." },
+        "themeProviderObject": { "type": "object", "description": "JS object literal for DSs that accept a theme object." },
+        "adapterNotes": { "type": "string", "description": "Any DS-specific bindings (e.g., 'shadcn: --background maps to Tailwind bg-background')." }
+      }
+    },
+
+    "themeability": {
+      "type": "object",
+      "description": "The DS's themeability verdict per-property. Produced by theming-resolver using ds-themeability-taxonomy.md.",
+      "required": ["tier", "perProperty", "userNotifications"],
+      "properties": {
+        "tier": {
+          "enum": ["tier-1-full", "tier-2-css-var-only", "tier-3-forked", "tier-4-custom-wrap"]
+        },
+        "perProperty": {
+          "type": "object",
+          "description": "For each themeable property, how it can be applied.",
+          "properties": {
+            "accentColor":   { "$ref": "#/$defs/themeableProperty" },
+            "neutralScale":  { "$ref": "#/$defs/themeableProperty" },
+            "radius":        { "$ref": "#/$defs/themeableProperty" },
+            "typography":    { "$ref": "#/$defs/themeableProperty" },
+            "spacing":       { "$ref": "#/$defs/themeableProperty" },
+            "shadow":        { "$ref": "#/$defs/themeableProperty" },
+            "motion":        { "$ref": "#/$defs/themeableProperty" },
+            "darkMode":      { "$ref": "#/$defs/themeableProperty" }
+          }
+        },
+        "userNotifications": {
+          "type": "array",
+          "description": "Human-readable notifications surfaced at G1 when the requested theme exceeds DS themeability.",
+          "items": {
+            "type": "object",
+            "required": ["severity", "property", "requested", "available", "fallback"],
+            "properties": {
+              "severity": { "enum": ["info", "warn", "blocker"] },
+              "property": { "type": "string" },
+              "requested": { "type": "string" },
+              "available": { "type": "string" },
+              "fallback": { "enum": ["accept-ds-default", "override-via-css-var", "fork-component-source", "custom-wrapper", "skip-theme-for-this-property"] }
+            }
+          }
+        }
+      }
+    },
+
+    "constraints": {
+      "type": "object",
+      "description": "Cross-cutting constraints the theme must honor — always enforced regardless of input.",
+      "properties": {
+        "accentMaxChroma": { "type": "number", "const": 0.16 },
+        "neutralMaxChroma": { "type": "number", "const": 0.02 },
+        "bannedPrimaryHexes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["#2563eb", "#1d4ed8", "#3b82f6", "#6366f1", "#4f46e5"]
+        },
+        "tabularNumsMandatory": { "type": "boolean", "const": true },
+        "motionEasingMustBeNamed": { "type": "boolean", "const": true }
+      }
+    }
+  },
+
+  "$defs": {
+    "semanticSet": {
+      "type": "object",
+      "description": "One semantic token set (light or dark). Values are either primitive refs (e.g., 'brand.600') OR oklch/hex literals when no primitive maps.",
+      "properties": {
+        "bg":                   { "type": "string" },
+        "surface-raised":       { "type": "string" },
+        "fg":                   { "type": "string" },
+        "fg-muted":             { "type": "string" },
+        "fg-subtle":            { "type": "string" },
+        "border-hairline":      { "type": "string" },
+        "accent":               { "type": "string" },
+        "accent-foreground":    { "type": "string" },
+        "accent-hover":         { "type": "string" },
+        "success":              { "type": "string" },
+        "warning":              { "type": "string" },
+        "danger":               { "type": "string" },
+        "info":                 { "type": "string" },
+        "focus-ring":           { "type": "string" }
+      },
+      "required": ["bg", "fg", "fg-muted", "accent", "border-hairline", "focus-ring"]
+    },
+    "themeableProperty": {
+      "type": "object",
+      "required": ["verdict", "mechanism"],
+      "properties": {
+        "verdict": { "enum": ["themeable-via-token", "themeable-via-prop", "themeable-via-css-var", "themeable-via-fork", "not-themeable"] },
+        "mechanism": { "type": "string", "description": "Concrete how: e.g., 'set --bg CSS var on :root', 'pass theme={...} to MuiThemeProvider', 'copy Button.tsx and edit line 42'." },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
