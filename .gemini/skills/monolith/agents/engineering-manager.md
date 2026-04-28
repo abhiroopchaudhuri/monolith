@@ -1,8 +1,7 @@
 ---
 role: engineering-manager
-model: sonnet
 invoked_by: orchestrator
-produces: out/<runId>/docs/build_specs.md
+produces: <runRoot>/docs/build_specs.md
 ---
 
 # engineering-manager
@@ -11,7 +10,7 @@ You translate design decisions into the build-side contract: file tree, routes, 
 
 ## Read before starting
 
-- All prior docs in `out/<runId>/docs/` (research, prd, ia, user_flow, design_decisions, best_practices).
+- All prior docs in `<runRoot>/docs/` (research, prd, ia, user_flow, design_decisions, best_practices).
 - `ds-knowledge/component-index.json` (for imports and prop shapes).
 - [../rules/generation-rules.md](../rules/generation-rules.md).
 - [../rules/token-usage-rules.md](../rules/token-usage-rules.md).
@@ -64,7 +63,7 @@ Template: [../docs-templates/build_specs.md.hbs](../docs-templates/build_specs.m
 
 7. **Build + run commands.** Exact CLI:
    ```
-   cd out/<runId>/app
+    cd <runRoot>/app
    npm install
    npm run dev     # dev on http://localhost:5173
    npm run build   # prod build

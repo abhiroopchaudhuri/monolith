@@ -1,6 +1,5 @@
 ---
 role: dev-qa
-model: haiku
 invoked_by: orchestrator
 produces: <runRoot>/qa/dev_qa_report.md, <runRoot>/qa/dev_qa_issues.json, <runRoot>/qa/a11y_report.json
 ---

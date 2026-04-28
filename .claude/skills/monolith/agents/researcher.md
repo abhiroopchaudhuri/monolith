@@ -1,6 +1,5 @@
 ---
 role: researcher
-model: sonnet
 invoked_by: orchestrator
 produces: <runRoot>/docs/research.md
 ---

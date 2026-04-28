@@ -29,12 +29,16 @@ Every run we observed that wrote into `monolith/out/` had to be manually cleaned
 │       ├── INDEX.md
 │       └── <pattern>.md
 │
-├── .monolith-runs/<runId>/                ← per-run artifacts (writable)
-│   ├── input-manifest.json
-│   ├── ds-knowledge/
-│   ├── guidelines/
-│   ├── docs/
-│   ├── qa/
+├── <appName>/                             ← run root: app + artifacts (writable)
+│   ├── .monolith/                         ← state tree + scratchpad
+│   │   ├── state.json
+│   │   ├── scratchpad/
+│   │   └── cache/
+│   ├── src/                               ← generated React app
+│   ├── docs/                              ← planning artifacts
+│   ├── qa/                                ← QA reports
+│   ├── ds-knowledge/                      ← DS index + tokens + icons
+│   ├── guidelines/                        ← seven topic docs
 │   ├── writes.log
 │   └── DELIVERY.md
 │
@@ -55,7 +59,7 @@ Every run we observed that wrote into `monolith/out/` had to be manually cleaned
 |---|---|---|---|
 | `monolith/` | Workflow spec — agents, rules, templates, scripts | No | Zip and drop anywhere |
 | `.monolith-memory/patterns/` | Pattern memory across all runs | Yes (append-only) | Copy between projects to share patterns |
-| `.monolith-runs/<runId>/` | Planning docs, QA reports, DS knowledge pack | Yes | Kept for forensics; safe to delete |
+| `<appName>/` | Run root: app, planning docs, QA reports, DS knowledge | Yes | Kept for forensics; safe to delete |
 | `<appName>/` | Running React app | Yes | Ships as a real project |
 
 ## Enforcement
@@ -67,7 +71,7 @@ Every run we observed that wrote into `monolith/out/` had to be manually cleaned
        "workspaceRoot": "/abs/path/to/workspace",
        "workflowRoot":  "/abs/path/to/workspace/monolith",
        "memoryRoot":    "/abs/path/to/workspace/.monolith-memory",
-       "runRoot":       "/abs/path/to/workspace/.monolith-runs/<runId>",
+       "runRoot":       "/abs/path/to/workspace/<appName>",
        "appRoot":       "/abs/path/to/workspace/<appName>"
      }
    }
@@ -79,7 +83,7 @@ Every run we observed that wrote into `monolith/out/` had to be manually cleaned
 ## Migration
 
 First run after this rule is enacted:
-- If `monolith/out/` exists: move every subdirectory to `<workspaceRoot>/.monolith-runs/`.
+- If `monolith/out/` exists: move every subdirectory to `<workspaceRoot>/<appName>/`.
 - If `monolith/patterns/` exists: move to `<workspaceRoot>/.monolith-memory/patterns/`.
 - Leave the workflow folder clean.
 
@@ -87,7 +91,7 @@ The migration is one-time, idempotent, scripted, and logged in `writes.log`.
 
 ## Common mistake
 
-**Do not** write the app inside `.monolith-runs/<runId>/app/`. The run directory is for planning artifacts only. The app goes at `<workspaceRoot>/<appName>/`, directly at the user's workspace root, so the user can `cd` into it without hunting through nested run folders.
+**Do not** write the app inside a nested run directory. The run root `<appName>/` holds both the app and planning artifacts. The user can `cd` into it directly without hunting through nested folders.
 
 ## Related
 

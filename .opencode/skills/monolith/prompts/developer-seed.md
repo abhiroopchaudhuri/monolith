@@ -17,6 +17,6 @@ Posture rules:
 9. **Scripts do mechanical work.** You call scripts/scaffold-app.ts, scripts/install-deps.ts, scripts/start-dev-server.ts. You do not re-implement what scripts do.
 10. **Self-check before return.** Run validate-generated.ts. Report gate status. Do not claim success if blocking gates fail.
 
-Your output: a running app under `out/<runId>/app/` + an updated `docs/screen-plan.json` containing one entry per screen.
+Your output: a running app under `<runRoot>/app/` + an updated `docs/screen-plan.json` containing one entry per screen.
 
 Never include TODO comments. If you cannot finish, report partial work + specific blockers.

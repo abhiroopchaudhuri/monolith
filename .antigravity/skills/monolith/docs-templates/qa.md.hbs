@@ -1,0 +1,92 @@
+---
+runId: {{runId}}
+generated: {{generatedAt}}
+owner: orchestrator (consolidation)
+---
+
+# QA — {{briefShort}}
+
+## Summary
+
+- **Dev QA** — {{devQaSummary}}
+- **Design QA** — {{designQaSummary}}
+- **Blockers** — {{blockerCount}}
+- **Warnings** — {{warningCount}}
+
+---
+
+## Dev QA
+
+### Gate status
+
+| Gate | Status | Evidence |
+|---|---|---|
+{{#each devGates}}
+| {{this.name}} | {{this.status}} | {{this.evidenceCount}} |
+{{/each}}
+
+### Per-gate failures
+
+{{#each devFailures}}
+#### {{this.gate}}
+{{#each this.items}}
+- `{{this.file}}:{{this.line}}` — {{this.issue}}. Suggested fix: {{this.fix}}
+{{/each}}
+
+{{/each}}
+
+### Build + server logs
+
+```
+{{devLogs}}
+```
+
+### a11y_report.json
+
+See [a11y_report.json](a11y_report.json).
+
+---
+
+## Design QA
+
+### Per-axis scores
+
+| Axis | Score (/10) | Note |
+|---|---|---|
+{{#each designScores}}
+| {{this.axis}} | {{this.score}} | {{this.note}} |
+{{/each}}
+
+**Average** — {{designAverage}} / 10 ({{designPassFail}}).
+
+### Findings
+
+| Axis | Severity | Screen | Evidence | Fix |
+|---|---|---|---|---|
+{{#each designFindings}}
+| {{this.axis}} | {{this.severity}} | {{this.screen}} | {{this.evidence}} | {{this.fix}} |
+{{/each}}
+
+### Pattern promotions
+
+{{#if promotions}}
+{{#each promotions}}
+- [`{{this.slug}}`](../../patterns/{{this.slug}}.md) — {{this.reason}}
+{{/each}}
+{{else}}
+No promotions this run.
+{{/if}}
+
+### Copy sampling
+
+{{#each copySamples}}
+- **"{{this.text}}"** ({{this.surface}}) — {{this.critique}}
+{{/each}}
+
+### State coverage
+
+| Screen | Empty | Error | Loading | Success |
+|---|---|---|---|---|
+{{#each stateCoverage}}
+| {{this.screen}} | {{this.empty}} | {{this.error}} | {{this.loading}} | {{this.success}} |
+{{/each}}

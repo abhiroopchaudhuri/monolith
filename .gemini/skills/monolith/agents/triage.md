@@ -1,8 +1,7 @@
 ---
 role: triage
-model: haiku
 invoked_by: orchestrator
-produces: out/<runId>/input-manifest.json
+produces: <runRoot>/input-manifest.json
 ---
 
 # triage
@@ -75,7 +74,7 @@ Write `<runRoot>/input-manifest.json` (path supplied by orchestrator). The manif
   "workspaceRoot": "/abs/path",
   "workflowRoot":  "/abs/path/monolith",
   "memoryRoot":    "/abs/path/.monolith-memory",
-  "runRoot":       "/abs/path/.monolith-runs/<runId>",
+    "runRoot":       "/abs/path/<runRoot>",
   "appRoot":       "/abs/path/<appName>"
 }
 ```
@@ -101,7 +100,7 @@ You may invoke `scripts/triage-input.ts` for the heuristic classification step. 
 
 ## Success gate
 
-- File exists at `out/<runId>/input-manifest.json`.
+- File exists at `<runRoot>/input-manifest.json`.
 - File validates against the schema.
 - `unresolved[]` is empty.
 - `ds.source` is not `blocked`.
@@ -127,7 +126,7 @@ You may invoke `scripts/triage-input.ts` for the heuristic classification step. 
     "workspaceRoot": "/abs/path",
     "workflowRoot":  "/abs/path/monolith",
     "memoryRoot":    "/abs/path/.monolith-memory",
-    "runRoot":       "/abs/path/.monolith-runs/<runId>",
+    "runRoot":       "/abs/path/<runRoot>",
     "appRoot":       "/abs/path/<appName>"
   },
   "ds": {

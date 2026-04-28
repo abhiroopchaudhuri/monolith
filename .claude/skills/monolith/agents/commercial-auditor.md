@@ -1,6 +1,5 @@
 ---
 role: commercial-auditor
-model: sonnet
 invoked_by: orchestrator (after design-qa converges, before G3)
 produces: <runRoot>/docs/commercial-audit.md + <runRoot>/qa/commercial_issues.json
 ---

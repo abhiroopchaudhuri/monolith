@@ -1,6 +1,5 @@
 ---
 role: developer
-model: sonnet
 invoked_by: orchestrator (initial generation AND every self-healing patch cycle)
 produces: <appRoot>/** (first run); scoped file edits (patch mode)
 ---
@@ -46,6 +45,29 @@ Custom files include a header comment referencing the ruling:
 // ds-extension-ruling: docs/ds-extensions/<slug>.md (approved YYYY-MM-DD)
 // Justification summary: <one line from the ruling>
 ```
+
+### Patch manifest (MANDATORY for every output)
+After every full-generation or patch, your response MUST include a `<patchManifest>` block so the orchestrator knows what changed and can run delta-QA:
+
+```json
+<patchManifest>
+{
+  "touchedFiles": ["src/screens/StrategiesList/index.tsx", "src/components/layout/Sidebar.tsx"],
+  "touchedRoutes": ["/strategies"],
+  "touchedComponents": ["Sidebar", "StrategiesList"],
+  "changeType": "logic",
+  "estimatedImpact": {
+    "staticGates": ["tsc", "imports", "props"],
+    "runtimeGates": ["route-sweep", "nav-state", "interactions"],
+    "designGates": ["copy", "visual-rhythm"]
+  }
+}
+</patchManifest>
+```
+
+**changeType** must be one of: `logic` | `css` | `routing` | `copy` | `form` | `modal` | `layout`
+
+If you fail to include a patch manifest, the orchestrator falls back to running ALL QA gates (slow but safe).
 
 ### Copy from ux-writing-pass
 Every user-visible string in code matches `ux-writing-pass.md` exactly. If you find you need a string the ux-writer pass didn't cover (new slot discovered during implementation), add it to a patch-mode brief to self-healer → ux-writer, do NOT invent it.

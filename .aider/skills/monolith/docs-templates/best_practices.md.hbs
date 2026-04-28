@@ -1,0 +1,36 @@
+---
+runId: {{runId}}
+generated: {{generatedAt}}
+owner: lead-designer
+---
+
+# Best practices — {{briefShort}}
+
+## Project-specific practices
+
+{{#each practices}}
+- **{{this.name}}** — {{this.detail}}
+{{/each}}
+
+## Project-specific anti-practices
+
+{{#each antiPractices}}
+- **{{this.name}}** — {{this.reason}}
+{{/each}}
+
+## Token discipline
+
+- **Access pattern.** {{tokenAccessPattern}}
+- **Never-inline** — {{neverInline}}
+- **Always-through-token** — {{alwaysThroughToken}}
+
+## Copy discipline
+
+- **Voice words in use.** {{voiceWords}}
+- **Sample phrases applied.** {{sampleApplied}}
+
+## A11y practices
+
+{{#each a11yPractices}}
+- {{this}}
+{{/each}}

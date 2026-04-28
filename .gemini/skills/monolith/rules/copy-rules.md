@@ -12,7 +12,7 @@
 
 ## The voice source
 
-`out/<runId>/guidelines/voice.md` is authoritative. It is resolved in Stage 2 from the user's provided voice doc, the DS's website, the repo, or generated. Every copy-writing agent (PM, designer, developer) reads it before writing a single word.
+`<runRoot>/guidelines/voice.md` is authoritative. It is resolved in Stage 2 from the user's provided voice doc, the DS's website, the repo, or generated. Every copy-writing agent (PM, designer, developer) reads it before writing a single word.
 
 Required voice.md fields (see [../guidelines-schema/voice.schema.json](../guidelines-schema/voice.schema.json)):
 - `toneWords[]` — 3+ adjectives (e.g., "clear, direct, warm")

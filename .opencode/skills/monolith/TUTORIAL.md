@@ -127,7 +127,7 @@ Every iteration re-runs ONLY the named agent + strictly-downstream agents. See [
 ### A.5 Code generation + QA
 
 - `pattern-decider` produces the section-by-section decision matrix.
-- `developer` scaffolds Vite + your DS + routes + fixtures + screens under `out/<runId>/app/`.
+- `developer` scaffolds Vite + your DS + routes + fixtures + screens under `<runRoot>/app/`.
 - `dev-qa` runs tsc, ESLint, build, dev-server boot, axe, DS_FIRST static gate.
 - `design-qa` evaluates rhythm, copy, token coverage, state completeness; promotes any new recurring patterns into `patterns/`.
 
@@ -135,7 +135,7 @@ Every iteration re-runs ONLY the named agent + strictly-downstream agents. See [
 
 ```
 ✓ Prototype ready at http://localhost:5173
-  run: cd out/<runId>/app && npm run dev
+  run: cd <runRoot>/app && npm run dev
 ```
 
 Respond `accept`. The orchestrator prints the Phase 2 handoff command.
@@ -143,7 +143,7 @@ Respond `accept`. The orchestrator prints the Phase 2 handoff command.
 ### A.7 Output
 
 ```
-out/<runId>/
+<runRoot>/
   input-manifest.json
   ds-knowledge/{component-index,tokens,icons}.json
   guidelines/{brand,voice,ux-principles,accessibility,content,motion,layout}.md
@@ -457,7 +457,7 @@ Once G3 is `accept`, the orchestrator prints:
 
 ```
 Localhost: http://localhost:<port>
-Start: cd out/<runId>/app && npm run dev
+Start: cd <runRoot>/app && npm run dev
 
 Next step — Phase 2 handoff:
   1. Open http://localhost:<port>/<primary-route> in a browser.
@@ -465,9 +465,9 @@ Next step — Phase 2 handoff:
      into a new Figma frame named `SKELETON — <screen-id>`.
   3. Run:
      /rewire-to-ds <figma-frame-url>
-       --plan   out/<runId>/docs/screen-plan.json
-       --tokens out/<runId>/ds-knowledge/tokens.json
-       --index  out/<runId>/ds-knowledge/component-index.json
+       --plan   <runRoot>/docs/screen-plan.json
+       --tokens <runRoot>/ds-knowledge/tokens.json
+       --index  <runRoot>/ds-knowledge/component-index.json
 ```
 
 Phase 1.5 (the html.to.design step) is manual in v1. Phase 2 handles the reconciliation against the Figma DS library. See [../phase-2-rewire-to-ds/SKILL.md](../phase-2-rewire-to-ds/SKILL.md).
@@ -480,10 +480,10 @@ Phase 1.5 (the html.to.design step) is manual in v1. Phase 2 handles the reconci
 
 Open in this order:
 
-1. `out/<runId>/DELIVERY.md` — one-page summary.
-2. `out/<runId>/docs/qa.md` — consolidated QA.
-3. `out/<runId>/app/` — open in your editor.
-4. `out/<runId>/docs/build_specs.md` — the file-level map.
+1. `<runRoot>/DELIVERY.md` — one-page summary.
+2. `<runRoot>/docs/qa.md` — consolidated QA.
+3. `<runRoot>/app/` — open in your editor.
+4. `<runRoot>/docs/build_specs.md` — the file-level map.
 5. Localhost URL — interact.
 
 ### 3.2 What every doc means
@@ -503,7 +503,7 @@ Open in this order:
 
 ### 3.3 The DS knowledge pack
 
-`out/<runId>/ds-knowledge/` is deliberately boring but load-bearing:
+`<runRoot>/ds-knowledge/` is deliberately boring but load-bearing:
 
 - `component-index.json` — every DS component, props, variants, slots, icons, token refs.
 - `tokens.json` — normalized token map.
@@ -513,7 +513,7 @@ Downstream agents read these three files and nothing else about the DS.
 
 ### 3.4 The guidelines
 
-`out/<runId>/guidelines/` has the seven topic docs. Each carries `inferred: true/false` in frontmatter. When `inferred: false` and the body says "Insufficient evidence — recommend human authoring", that's exactly what it means: the skill refused to make things up. Treat as a prompt to author real guidelines.
+`<runRoot>/guidelines/` has the seven topic docs. Each carries `inferred: true/false` in frontmatter. When `inferred: false` and the body says "Insufficient evidence — recommend human authoring", that's exactly what it means: the skill refused to make things up. Treat as a prompt to author real guidelines.
 
 ---
 
@@ -541,7 +541,7 @@ Yes — it IS the skill's durable memory. Commit it. Don't edit manually; let th
 
 ### 4.6 "Something went wrong mid-run. Can I resume?"
 
-Every sub-agent's completion is logged in `out/<runId>/writes.log`. If a run aborts at stage N, you can re-invoke the orchestrator with `--resume <runId>` and it will skip stages 0..N-1 whose outputs exist and re-run N onward. (Note: this is M4+ functionality — until then, re-run from the last approval gate.)
+Every sub-agent's completion is logged in `<runRoot>/writes.log`. If a run aborts at stage N, you can re-invoke the orchestrator with `--resume <runId>` and it will skip stages 0..N-1 whose outputs exist and re-run N onward. (Note: this is M4+ functionality — until then, re-run from the last approval gate.)
 
 ### 4.7 "I want to onboard a totally new DS."
 
@@ -576,7 +576,7 @@ iterate on developer: state completeness is low (4/10). add empty,
 
 Valid workflow:
 
-1. First run with `Guidelines: auto`. Skill generates evidence-backed drafts in `out/<runId>/guidelines/`.
+1. First run with `Guidelines: auto`. Skill generates evidence-backed drafts in `<runRoot>/guidelines/`.
 2. Copy the drafts into a real location, edit/rewrite them.
 3. Re-run with `Guidelines: files:<paths>` pointing at your edited versions.
 
@@ -596,7 +596,7 @@ When the fallback generator emits "Insufficient evidence" in a doc, that's NOT l
 
 ### 5.3 Don't edit generated code and re-invoke
 
-The `out/<runId>/app/` tree is rewritten by any iteration that reaches stage 9. If you edit by hand and then iterate, your edits are lost. Instead, iterate the upstream doc that should have produced the behavior you want.
+The `<runRoot>/app/` tree is rewritten by any iteration that reaches stage 9. If you edit by hand and then iterate, your edits are lost. Instead, iterate the upstream doc that should have produced the behavior you want.
 
 ### 5.4 Don't cross-contaminate runs
 

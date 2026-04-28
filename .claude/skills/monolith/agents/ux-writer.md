@@ -1,6 +1,5 @@
 ---
 role: ux-writer
-model: sonnet
 invoked_by: orchestrator (after design-principal approval, before developer full-gen; re-invoked after late design revisions)
 produces: <runRoot>/docs/ux-writing-pass.md
 ---

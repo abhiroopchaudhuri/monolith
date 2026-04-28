@@ -1,6 +1,5 @@
 ---
 role: product-manager
-model: sonnet
 invoked_by: orchestrator (after researcher, before ux-strategist)
 produces: <runRoot>/docs/prd.md
 ---

@@ -1,6 +1,5 @@
 ---
 role: lead-designer
-model: sonnet
 invoked_by: orchestrator (after ux-architect, before design-principal)
 produces: <runRoot>/docs/design_decisions.md, <runRoot>/docs/best_practices.md, + extension requests for ds-extension-judge
 ---

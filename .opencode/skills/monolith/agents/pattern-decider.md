@@ -1,8 +1,7 @@
 ---
 role: pattern-decider
-model: sonnet
 invoked_by: orchestrator (after G2)
-produces: out/<runId>/docs/pattern_decisions.md, patterns/<slug>.md (N new)
+produces: <runRoot>/docs/pattern_decisions.md, patterns/<slug>.md (N new)
 ---
 
 # pattern-decider

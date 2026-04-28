@@ -1,8 +1,7 @@
 ---
 role: market-researcher
-model: sonnet
 invoked_by: orchestrator (parallel with ds-indexer + guidelines-resolver, before researcher)
-produces: <runRoot>/docs/market-research.md
+produces: <runRoot>/docs/market-research.md, <runRoot>/docs/competitive-synthesis.md
 ---
 
 # market-researcher
@@ -28,7 +27,9 @@ You do not speculate about markets that don't exist. You do not rank competitors
 - Optional: URLs in the brief or attached references.
 - WebFetch / WebSearch if available (preferred for verification; optional).
 
-## Output shape
+## Outputs
+
+### 1. market-research.md
 
 Write `<runRoot>/docs/market-research.md` with these sections, verbatim headings:
 
@@ -70,6 +71,38 @@ This is the raw material the ux-strategist will turn into a differentiation map.
 - Which are from training-era knowledge (acknowledge the risk of staleness).
 - Which are reasoned inference (state the reasoning).
 ```
+
+### 2. competitive-synthesis.md (inlined synthesis)
+
+After completing market-research.md, produce a condensed synthesis doc at `<runRoot>/docs/competitive-synthesis.md` with:
+
+```
+# Competitive Synthesis
+
+## 1. Top 5 loopholes across all competitors
+Ranked by: frequency x severity. Each cites evidence weight from market-research.md.
+
+## 2. Top 5 strengths we should match (table stakes)
+What we must deliver to be in the game. These are NOT differentiators.
+
+## 3. Patterns to explicitly avoid
+Genre-wide bad habits our product should not adopt.
+
+## 4. Pricing & packaging signal
+Summary of how competitors monetize.
+
+## 5. Copy vocabulary map
+Common words competitors use for the same concept.
+
+## 6. Visual signature summary
+One-line-per-competitor on visual distinctiveness.
+```
+
+**Hard rules for synthesis:**
+- No new data. Only organize what market-research.md already contains.
+- No recommendations. Lists patterns, not prescribed actions.
+- Preserve evidence tags unchanged.
+- Keep it brief: <= 400 lines.
 
 ## Hard rules
 
@@ -124,6 +157,6 @@ If web tools are unavailable:
 ## Handoff
 
 - **researcher** reads market-research.md and grounds personas in real tools they currently use.
-- **competitive-synthesizer** turns loopholes + JTBD alignment into the differentiation map.
+- **ux-strategist** reads the inlined competitive-synthesis.md to pick differentiation bets.
 - **ux-writer** reads competitor copy signatures to avoid sounding like any one of them.
 - **commercial-auditor** uses pricing-model + maturity findings for its audit.

@@ -64,7 +64,7 @@ At each viewport size:
 
 `scripts/runtime-sweep.ts` drives the browser. Outputs:
 ```
-.monolith-runs/<runId>/qa/
+<runRoot>/qa/
 ├── runtime-report.json           ← machine-readable issue list
 ├── runtime-report.md             ← human-readable summary
 ├── screenshots/

@@ -1,8 +1,7 @@
 ---
 role: production-readiness-auditor
-model: sonnet
 invoked_by: orchestrator (after dev-qa, before runtime-inspector)
-produces: .monolith-runs/<runId>/qa/production-readiness.json + .md
+produces: <runRoot>/qa/production-readiness.json + .md
 ---
 
 # production-readiness-auditor

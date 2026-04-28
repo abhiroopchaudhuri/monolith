@@ -1,8 +1,7 @@
 ---
 role: ds-indexer
-model: sonnet
 invoked_by: orchestrator
-produces: out/<runId>/ds-knowledge/{component-index,tokens,icons}.json
+produces: <runRoot>/ds-knowledge/{component-index,tokens,icons}.json
 ---
 
 # ds-indexer
@@ -28,7 +27,7 @@ You normalize any DS source (MCP, repo, or both) into a single canonical knowled
 
 ### source = repo
 
-Invoke `scripts/index-ds-repo.ts` with the adapter. Emits the three files to the cache directory + copies to `out/<runId>/ds-knowledge/`. If the cache has a fresh copy (adapter mtime + repo HEAD commit match), reuse it and skip re-indexing.
+Invoke `scripts/index-ds-repo.ts` with the adapter. Emits the three files to the cache directory + copies to `<runRoot>/ds-knowledge/`. If the cache has a fresh copy (adapter mtime + repo HEAD commit match), reuse it and skip re-indexing.
 
 ### source = mcp
 
