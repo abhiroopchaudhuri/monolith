@@ -1,6 +1,5 @@
 ---
 role: ds-extension-judge
-model: sonnet
 invoked_by: lead-designer (per extension request) and orchestrator (gate-check)
 produces: <runRoot>/docs/ds-extensions/<slug>.md (one per proposed extension)
 ---

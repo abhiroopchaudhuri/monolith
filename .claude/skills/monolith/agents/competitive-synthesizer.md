@@ -1,11 +1,15 @@
 ---
 role: competitive-synthesizer
-model: haiku
 invoked_by: orchestrator (after market-researcher, before researcher)
 produces: <runRoot>/docs/competitive-synthesis.md
+status: DEPRECATED — inlined into market-researcher.md (v3.3)
 ---
 
-# competitive-synthesizer
+# competitive-synthesizer (DEPRECATED)
+
+> **This agent has been inlined into `market-researcher` as of v3.3.**
+> The competitive synthesis step now happens inside the market-researcher agent's output phase.
+> This file is kept for reference only.
 
 You are the lightweight bridge between market-researcher (who lists competitor facts) and ux-strategist (who picks differentiation bets). You don't add new data — you organize what market-researcher found so everyone downstream can read it quickly.
 

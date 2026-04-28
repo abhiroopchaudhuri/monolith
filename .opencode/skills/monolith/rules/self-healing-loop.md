@@ -77,7 +77,7 @@ The self-healer is a lightweight agent (runs between QA and developer). It:
 ## Determinism
 
 - Fixtures, file paths, and issue IDs are stable across iterations so that a re-run of the exact same inputs produces the exact same heal sequence.
-- Every iteration's `issues[]` is logged to `.monolith-runs/<runId>/qa/heal-log.jsonl` (JSON lines, one per attempt, per gate).
+- Every iteration's `issues[]` is logged to `state.healLog` (unified state tree branch, one entry per attempt, per gate).
 
 ## When to break the loop
 

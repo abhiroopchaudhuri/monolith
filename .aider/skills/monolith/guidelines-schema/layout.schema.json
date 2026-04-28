@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monolith/layout.schema.json",
+  "title": "Layout",
+  "type": "object",
+  "required": ["inferred", "gridColumns", "spacingScale", "breakpoints"],
+  "properties": {
+    "inferred": { "type": "boolean" },
+    "gridColumns": { "type": "integer", "minimum": 1 },
+    "spacingScale": {
+      "type": "object",
+      "description": "Token name → px value (or CSS length)",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "number" },
+          { "type": "string" }
+        ]
+      }
+    },
+    "breakpoints": {
+      "type": "object",
+      "description": "Breakpoint name → min-width (px)",
+      "additionalProperties": { "type": "number" }
+    },
+    "containerWidths": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "density": {
+      "type": "object",
+      "properties": {
+        "compact":     { "type": "string" },
+        "comfortable": { "type": "string" },
+        "spacious":    { "type": "string" }
+      }
+    },
+    "evidence": { "type": "array", "items": { "type": "string" } }
+  }
+}

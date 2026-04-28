@@ -1,41 +1,38 @@
-# Rule 23 — Checkpoint Discipline (disk as source of truth)
+# Rule 23 — Checkpoint Discipline (state tree as source of truth)
 
-> **Why this rule exists.** Weaker LLMs (Haiku-tier, GPT-3.5-class) lose critical state across long multi-agent pipelines. Conversation recall is unreliable past ~30K tokens. Checkpoint files on disk solve this — every phase writes a compact checkpoint; later phases re-read from disk rather than relying on conversation context. This rule adopts the same discipline for `monolith`.
+> **Why this rule exists.** Weaker LLMs lose critical state across long multi-agent pipelines. Conversation recall is unreliable past ~30K tokens. A single state tree on disk solves this — every phase writes to a shared JSON tree; later phases read only the branches they need.
 >
-> **Headline rule.** **State between agents flows through files, not conversation.** An agent's inputs are a declared file list. Its outputs are declared file writes. It does not rely on "what was said earlier in the chat."
+> **Headline rule.** **State between agents flows through `.monolith/state.json`, not conversation.** An agent reads specific branches from the state tree. It writes its outputs back to the state tree. It does not rely on "what was said earlier in the chat."
 
 ---
 
-## Part 1 — The `checkpoints/` folder
+## Part 1 — The State Tree
 
-Every run has:
+Every run has exactly one state file:
 
 ```
-<runRoot>/checkpoints/
-├── 01-triage.json              ← manifest + paths + appName
-├── 02-ds-index.json            ← summary of DS: counts, tiers, adapter kind
-├── 03-guidelines.json          ← normalized guidelines summary
-├── 04-theme-spec.json          ← (the full theme-spec lives here)
-├── 05-market.json              ← top competitors, top loopholes, visual signatures
-├── 06-research.json            ← personas, JTBDs, gap inferences
-├── 07-prd.json                 ← problem, stories, MVP, metrics
-├── 08-differentiation.json     ← 3–5 bets with citations
-├── 09-ia.json                  ← sitemap, nav, states inventory
-├── 10-design-decisions.json    ← per-section summary
-├── 11-design-critique.json     ← per-screen grades + revisions
-├── 12-aesthetic-audit.json     ← per-screen tells + verdict
-├── 13-ux-writing.json          ← key strings + voice rules applied
-├── 14-build-specs.json         ← file tree + routes
-├── 15-pattern-decisions.json   ← pattern matrix
-├── 16-build.json               ← appRoot, port, commit hash
-├── 17-dev-qa.json              ← gates + attempts
-├── 18-prod-readiness.json      ← gates + attempts
-├── 19-runtime.json             ← routes + screenshots + interaction verification
-├── 20-design-qa.json           ← axis scores + promotions
-└── 21-commercial.json          ← verdict + surfaces
+.monolith/state.json
 ```
 
-Checkpoints are **compact summaries** (≤4KB each) with references to the full artifacts under `<runRoot>/docs/` or `<runRoot>/qa/`. They are the lightweight thing downstream agents re-read to get oriented.
+This replaces the old 21 checkpoint files + SQLite database. All phase checkpoints, artifact metadata, QA status, issues, and heal log live inside this single JSON tree.
+
+Key branches:
+
+| Branch | What it holds |
+|---|---|
+| `meta` | runId, version, status, timestamps |
+| `input.manifest` | the user brief + detected inputs |
+| `phases.<name>` | per-phase status + checkpoint summary |
+| `artifacts.<name>` | artifact metadata (summary, path, tokenCount) |
+| `qa.<gate>` | attempt count, status, last issues |
+| `issues.open` | current unresolved issues |
+| `issues.resolved` | fixed issues |
+| `healLog` | iteration history |
+| `patterns` | reused + promoted patterns |
+| `server` | dev server PID + URL |
+| `cache` | content-addressable cache metadata |
+
+The orchestrator is the sole writer to `state.json`. Agents declare their outputs, and the orchestrator writes them.
 
 ---
 
@@ -98,15 +95,15 @@ Every agent's frontmatter declares a `reads:` list AND a `writes:` list. The age
 1. Reads each file in `reads:` — no more.
 2. Reads the checkpoint of the immediately preceding phase (the `handoff.nextPhase` that points at this agent).
 3. Writes each file in `writes:` — no more.
-4. Emits its own checkpoint to `<runRoot>/checkpoints/<NN>-<phase>.json`.
+4. Writes its checkpoint summary to `state.phases.<phaseName>.checkpoint` via the orchestrator.
 
-Anything learned from conversation context is **advisory only** and must be reconfirmed against files. If an agent finds its conversation recall disagrees with a checkpoint, the checkpoint wins.
+Anything learned from conversation context is **advisory only** and must be reconfirmed against the state tree. If an agent finds its conversation recall disagrees with the state tree, the state tree wins.
 
 ---
 
 ## Part 4 — Why this helps weaker LLMs
 
-At Haiku-tier, conversation context past ~30K tokens becomes lossy. A weaker LLM invoked as (say) `developer` for a 15-route React app cannot reliably re-derive the design decisions from "scroll back in the chat." It can reliably **open `<runRoot>/checkpoints/10-design-decisions.json`** (4KB) and know exactly what was decided.
+At weaker-model tiers, conversation context becomes lossy. A weaker LLM invoked as (say) `developer` for a 15-route React app cannot reliably re-derive the design decisions from "scroll back in the chat." It can reliably **read `state.phases.leadDesigner.checkpoint`** (compact summary) and know exactly what was decided.
 
 Corollary: checkpoints are **optimized for re-reading**, not for writing. If a field is ambiguous, the checkpoint makes it explicit.
 
@@ -125,10 +122,10 @@ Corollary: checkpoints are **optimized for re-reading**, not for writing. If a f
 
 The orchestrator:
 
-1. Creates `<runRoot>/checkpoints/` at path resolution.
-2. Between phases, verifies the prior phase's checkpoint exists and is schema-valid.
-3. Passes the runRoot to each sub-agent; sub-agent reads only from its declared `reads:` + the preceding checkpoint.
-4. If a checkpoint is missing, the orchestrator re-invokes the phase; if the re-invocation also fails, escalates at the nearest gate.
+1. Initializes `.monolith/state.json` via `stateManager.init()`.
+2. Between phases, verifies the prior phase's `state.phases.<name>.status` is `done` or `skipped`.
+3. Passes `runRoot` to each sub-agent; sub-agent reads only from its declared `reads:` + the state tree.
+4. If a phase status is missing or `failed`, the orchestrator re-invokes the phase; if the re-invocation also fails, escalates at the nearest gate.
 
 ---
 

@@ -17,8 +17,7 @@ A single-command route from a one-line brief to a **market-grade**, documented, 
 
 | Real org role | This skill's agent |
 |---|---|
-| Market / competitive researcher | `market-researcher` |
-| Synthesis analyst | `competitive-synthesizer` |
+| Market / competitive researcher (+ synthesis) | `market-researcher` |
 | Product researcher | `researcher` |
 | Product manager | `product-manager` |
 | UX strategist | `ux-strategist` |
@@ -66,9 +65,8 @@ Use this whenever the user wants a FULL run — research → code → market-gra
 
 ```
 triage →
-  [discovery] ds-indexer ‖ guidelines-resolver ‖ market-researcher →
+  [discovery] ds-indexer ‖ guidelines-resolver ‖ market-researcher (includes competitive synthesis) →
               theming-resolver (normalizes theme inputs + DS themeability tier) →
-              competitive-synthesizer →
   [research] researcher → PM → ux-strategist (3–5 differentiators) →
   [design] ux-architect → lead-designer ↔ ds-extension-judge → design-principal → aesthetic-director → ux-writer →
   [specs] eng-manager →
@@ -79,7 +77,7 @@ triage →
           [ ≫ G3 ≪ ] → DELIVERY.md + localhost URL
 ```
 
-**State flow.** Phase state lives in `<runRoot>/checkpoints/*.json` (disk as source of truth, Rule 23). Each agent declares `reads:` / `writes:` explicitly (Rule 24). Planning artifacts are size-capped (Rule 25). Every agent emits a `📋 Delivered: X | Remaining: Y` tally per artifact (Rule 26).
+**State flow.** Phase state lives in `.monolith/state.json` (unified state tree, Rule 23). Each agent declares `reads:` / `writes:` explicitly (Rule 24). Planning artifacts are size-capped (Rule 25). Every agent emits a `📋 Delivered: X | Remaining: Y` tally per artifact (Rule 26).
 
 Five `[↻]` self-healing loops. Max 5 iterations per gate. Hard-block with escalation otherwise.
 
@@ -91,14 +89,11 @@ Five `[↻]` self-healing loops. Max 5 iterations per gate. Hard-block with esca
 <workspaceRoot>/
 ├── monolith/               ← workflow (never written to)
 ├── .monolith-memory/patterns/         ← persistent pattern memory
-├── .monolith-runs/<runId>/
-│   ├── input-manifest.json
-│   ├── checkpoints/                 ← phase state (Rule 23)
-│   ├── theme-spec.json              ← normalized theme (Rule 21)
-│   ├── themeability-report.md       ← DS tier + fallbacks (Rule 22)
-│   ├── ds-knowledge/
-│   ├── guidelines/
-│   ├── docs/
+├── <appName>/                       ← run root: app + artifacts
+│   ├── .monolith/                   ← state tree (Rule 23)
+│   │   └── state.json
+│   ├── src/                         ← generated React app
+│   ├── docs/                        ← planning artifacts
 │   │   ├── market-research.md
 │   │   ├── competitive-synthesis.md
 │   │   ├── research.md               (with Gap Inferences)
@@ -115,7 +110,11 @@ Five `[↻]` self-healing loops. Max 5 iterations per gate. Hard-block with esca
 │   │   ├── pattern_decisions.md
 │   │   ├── commercial-audit.md
 │   │   └── qa.md
-│   ├── qa/
+│   ├── qa/                          ← QA reports
+│   ├── ds-knowledge/                ← DS index + tokens + icons
+│   ├── guidelines/                  ← seven topic docs
+│   ├── theme-spec.json              ← normalized theme (Rule 21)
+│   ├── themeability-report.md       ← DS tier + fallbacks (Rule 22)
 │   └── DELIVERY.md
 └── <appName>/                        ← the running app
 ```
@@ -187,7 +186,7 @@ Theming (v3.2 — universal theme ingestion):
 - **Rule 22** — DS themeability taxonomy. [rules/ds-themeability-taxonomy.md](rules/ds-themeability-taxonomy.md) — classifies every DS into tier 1 (full), tier 2 (css-var-only), tier 3 (forked), tier 4 (custom-wrap). Fallback paths + user-facing notifications at G1 when the requested theme exceeds DS capacity. Known DSs: [references/ds-themeability-registry.md](references/ds-themeability-registry.md).
 
 Workflow discipline (v3.2 — stabilizes weaker LLMs):
-- **Rule 23** — Checkpoint discipline (disk as source of truth). [rules/checkpoint-discipline.md](rules/checkpoint-discipline.md) — state between agents flows through `<runRoot>/checkpoints/*.json`, not conversation.
+- **Rule 23** — Checkpoint discipline (state tree as source of truth). [rules/checkpoint-discipline.md](rules/checkpoint-discipline.md) — state between agents flows through `.monolith/state.json`, not conversation.
 - **Rule 24** — Phase manifest discipline. [rules/phase-manifest-discipline.md](rules/phase-manifest-discipline.md) — every agent declares `reads:` / `writes:` in its frontmatter.
 - **Rule 25** — Artifact size cap. [rules/artifact-size-cap.md](rules/artifact-size-cap.md) — 10K tokens per planning artifact; compression over prose.
 - **Rule 26** — Deliverable tally discipline. [rules/deliverable-tally.md](rules/deliverable-tally.md) — `📋 Delivered: X | Remaining: Y` printed after every artifact.
@@ -210,7 +209,7 @@ Paths:
   workspace:    <workspaceRoot>/
   workflow:     <workspaceRoot>/monolith/  (unchanged)
   memory:       <workspaceRoot>/.monolith-memory/patterns/
-  run:          <workspaceRoot>/.monolith-runs/<runId>/
+  run:          <workspaceRoot>/<appName>/
   app:          <workspaceRoot>/<appName>/
 
 Market positioning:

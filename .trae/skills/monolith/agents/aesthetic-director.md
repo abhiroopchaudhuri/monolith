@@ -1,6 +1,5 @@
 ---
 role: aesthetic-director
-model: sonnet
 invoked_by: orchestrator (after design-principal, before ux-writer)
 produces: <runRoot>/docs/aesthetic-audit.md + up to 2 revision rounds with lead-designer
 ---

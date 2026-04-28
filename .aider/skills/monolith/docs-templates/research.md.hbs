@@ -1,0 +1,45 @@
+---
+runId: {{runId}}
+generated: {{generatedAt}}
+owner: researcher
+---
+
+# Research — {{briefShort}}
+
+## Domain overview
+
+{{!-- 1-2 paragraphs. Every fact either cites evidence or is marked inferred. --}}
+
+## Personas
+
+{{#each personas}}
+### {{this.name}}
+- **Goal.** {{this.goal}}
+- **Frustration.** {{this.frustration}}
+- **Context of use.** {{this.context}}
+
+{{/each}}
+
+## Jobs to be done
+
+{{#each jtbds}}
+- {{this}}
+{{/each}}
+
+## Prior art references
+
+{{#each priorArt}}
+- **{{this.name}}** — {{this.reason}}
+{{/each}}
+
+## Risks & unknowns
+
+{{#each risks}}
+- {{this}}
+{{/each}}
+
+## Guideline anchors
+
+{{#each guidelineAnchors}}
+- **{{this.doc}}** — > {{this.quote}}
+{{/each}}

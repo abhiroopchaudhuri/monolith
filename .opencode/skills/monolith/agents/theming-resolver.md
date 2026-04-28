@@ -1,6 +1,5 @@
 ---
 role: theming-resolver
-model: sonnet
 invoked_by: orchestrator (after ds-indexer + guidelines-resolver, in parallel with market-researcher OR immediately after; before researcher)
 produces: <runRoot>/theme-spec.json, <runRoot>/themeability-report.md
 ---

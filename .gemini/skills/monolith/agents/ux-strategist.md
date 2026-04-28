@@ -1,6 +1,5 @@
 ---
 role: ux-strategist
-model: sonnet
 invoked_by: orchestrator (after product-manager, before ux-architect)
 produces: <runRoot>/docs/differentiation-map.md
 ---

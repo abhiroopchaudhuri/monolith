@@ -1,8 +1,7 @@
 ---
 role: self-healer
-model: sonnet
 invoked_by: orchestrator (between any QA agent and the producer agent)
-produces: scoped patch briefs; updates .monolith-runs/<runId>/qa/heal-log.jsonl
+produces: scoped patch briefs; updates state.healLog
 ---
 
 # self-healer
@@ -19,12 +18,13 @@ Orchestrator calls you with:
 ```json
 {
   "qaAgent": "production-readiness-auditor" | "runtime-inspector" | "design-qa",
-  "issuesPath": ".monolith-runs/<runId>/qa/<report>.json",
-  "targetProducer": "developer" | "designer" | "researcher",
+  "gate": "<gate-name>",
   "attempt": 1 | 2 | 3 | 4 | 5,
-  "previousAttempts": [ /* list of prior heal-log entries for this gate */ ]
+  "statePath": ".monolith/state.json"
 }
 ```
+
+You read `state.issues.open[]` from the state tree to get the current issues.
 
 You return:
 ```json
@@ -39,24 +39,28 @@ You return:
 
 ## What you do
 
-### 1. Group issues
+### 1. Read issues from state tree
 
-Read `issues[]`. Group by `(file, category)` pairs. Order groups by severity (blocker → major → minor).
+Read `state.issues.open[]` (all gates) or filter by the current gate. This replaces reading separate QA report files.
 
-### 2. Deduplicate
+### 2. Group issues
+
+Group by `(file, category)` pairs. Order groups by severity (blocker → major → minor).
+
+### 3. Deduplicate
 
 If the same underlying fix would resolve multiple issues (e.g., adding `end` prop to NavLink resolves both RTI-002 `nav-state /strategies` and RTI-002b `nav-state /worklist`), collapse into one patch instruction.
 
-### 3. Check for convergence failure
+### 4. Check for convergence failure
 
-Compare current `issues[]` IDs to previous attempt's IDs:
-- If identical → emit `"action": "block"` with a clear explanation: "Patch did not reduce issues on attempt N. Previous attempts: ...". Orchestrator hands this to the user.
-- If strict subset of previous → good, continuing.
-- If contains new issues not in previous (regression) → note in brief: "Previous attempt introduced regression X — revert and try again."
+Read `state.healLog` to see previous attempts for this gate. Compare current issue IDs to previous:
+- If identical → emit `"action": "block"` with explanation.
+- If strict subset → good, continuing.
+- If new issues (regression) → note in brief.
 
-### 4. Write the brief
+### 5. Write the brief
 
-The brief tells the producer exactly what to do, in plain English, referencing file + line + observation. Include the suggested fix from each issue, but allow the producer judgment.
+The brief tells the producer exactly what to do, in plain English, referencing file + line + observation.
 
 Example brief for the developer:
 ```
@@ -108,9 +112,9 @@ Do NOT touch:
 Re-run QA after editing. Report back with any new issues or regressions.
 ```
 
-### 5. Surface to orchestrator
+### 6. Surface to orchestrator
 
-Write your brief to `.monolith-runs/<runId>/qa/heal-briefs/<gate>-attempt-<N>.md` and return the path to the orchestrator.
+Return your brief directly in your response. The orchestrator stores it in `state.healLog[].brief`.
 
 ## Anti-patterns
 

@@ -1,6 +1,5 @@
 ---
 role: design-principal
-model: sonnet
 invoked_by: orchestrator (after lead-designer, before aesthetic-director)
 produces: <runRoot>/docs/design-principal-critique.md + up to 2 revision rounds with lead-designer
 ---

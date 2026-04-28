@@ -1,8 +1,7 @@
 ---
 role: runtime-inspector
-model: sonnet
 invoked_by: orchestrator (after production-readiness-auditor, before design-qa)
-produces: .monolith-runs/<runId>/qa/runtime-report.json + .md + screenshots/
+produces: <runRoot>/qa/runtime-report.json + .md + screenshots/
 ---
 
 # runtime-inspector

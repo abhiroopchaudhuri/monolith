@@ -64,7 +64,7 @@ Respond `ok` to proceed.
 
 ## 3. Indexing + guidelines (automatic)
 
-- `scripts/index-ds-repo.ts` or `scripts/index-ds-mcp.ts` (depending on source) builds `out/<runId>/ds-knowledge/component-index.json`.
+- `scripts/index-ds-repo.ts` or `scripts/index-ds-mcp.ts` (depending on source) builds `<runRoot>/ds-knowledge/component-index.json`.
 - `scripts/extract-tokens.ts` + `scripts/extract-icons.ts` build `tokens.json` + `icons.json`.
 - Guidelines resolution runs the right pipeline for the detected source — see [rules/guidelines-inference-rules.md](rules/guidelines-inference-rules.md).
 
@@ -98,7 +98,7 @@ You see a one-page summary pulling highlights from each doc and links to the ful
 ## 6. Code generation + QA
 
 - `agents/pattern-decider.md` → `docs/pattern_decisions.md` + any new `patterns/*.md`
-- `agents/developer.md` → `out/<runId>/app/**` (scaffolded Vite app with your DS, router, theme, fixtures, every screen)
+- `agents/developer.md` → `<runRoot>/app/**` (scaffolded Vite app with your DS, router, theme, fixtures, every screen)
 - `agents/dev-qa.md` → `qa/dev_qa_report.md` (tsc, eslint, build, dev-server boot, axe, DS_FIRST)
 - `agents/design-qa.md` → `qa/design_qa_report.md` + promotes any new patterns
 
@@ -110,7 +110,7 @@ You see:
 
 ```
 ✓ Prototype ready at http://localhost:<port>
-  run: cd out/<runId>/app && npm run dev
+  run: cd <runRoot>/app && npm run dev
 ```
 
 plus the full artifact map. Respond `accept` to close the run.
@@ -123,7 +123,7 @@ Once accepted, hand off to Phase 2:
 
 ```
 /rewire-to-ds <frame-url>
-  --plan out/<runId>/docs/screen-plan.json
+  --plan <runRoot>/docs/screen-plan.json
 ```
 
 (Phase 1.5 — the html.to.design import into Figma — is manual in v1.)

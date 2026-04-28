@@ -1,0 +1,57 @@
+---
+runId: {{runId}}
+generated: {{generatedAt}}
+owner: ux-architect
+---
+
+# Information architecture — {{briefShort}}
+
+## Sitemap
+
+```
+{{sitemapAscii}}
+```
+
+## Nav model
+
+### Primary
+{{#each primaryNav}}
+- **{{this.label}}** → `{{this.route}}`
+{{/each}}
+
+### Secondary
+{{#each secondaryNav}}
+- **{{this.label}}** → `{{this.route}}`
+{{/each}}
+
+### Mobile variant
+{{mobileNavNotes}}
+
+## Content hierarchy per page
+
+{{#each pages}}
+### {{this.name}} (`{{this.route}}`)
+- **H1** {{this.h1}}
+- **Landmarks.** {{this.landmarks}}
+- **Sections.**
+  {{#each this.sections}}
+  - {{this.h}} — {{this.desc}}
+  {{/each}}
+
+{{/each}}
+
+## URL scheme
+
+| Route | Page | Layout | Dynamic? | Notes |
+|---|---|---|---|---|
+{{#each routes}}
+| `{{this.path}}` | {{this.page}} | {{this.layout}} | {{this.dynamic}} | {{this.notes}} |
+{{/each}}
+
+## Empty / error / loading inventory
+
+| Page | Empty | Error | Loading |
+|---|---|---|---|
+{{#each states}}
+| {{this.page}} | {{this.empty}} | {{this.error}} | {{this.loading}} |
+{{/each}}

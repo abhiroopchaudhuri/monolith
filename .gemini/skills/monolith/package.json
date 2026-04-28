@@ -1,0 +1,34 @@
+{
+  "name": "monolith-skill",
+  "version": "3.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "index-ds-repo": "tsx scripts/index-ds-repo.ts",
+    "index-ds-mcp": "tsx scripts/index-ds-mcp.ts",
+    "scaffold": "tsx scripts/scaffold-app.ts",
+    "validate": "tsx scripts/validate-generated.ts",
+    "axe": "tsx scripts/axe-run.ts",
+    "runtime": "tsx scripts/runtime-sweep.ts",
+    "visual-smoke": "tsx scripts/visual-smoke.ts",
+    "start-dev": "tsx scripts/start-dev-server.ts",
+    "stop-dev": "tsx scripts/stop-dev-server.ts",
+    "sync-skills": "node sync-skills.js"
+  },
+  "dependencies": {
+    "ts-morph": "^23.0.0",
+    "cheerio": "^1.0.0",
+    "handlebars": "^4.7.8",
+    "zod": "^3.23.0",
+    "playwright": "^1.44.0",
+    "@playwright/test": "^1.44.0",
+    "axe-core": "^4.9.0",
+    "jsdom": "^24.0.0",
+    "tsx": "^4.11.0",
+    "typescript": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/jsdom": "^21.0.0"
+  }
+}

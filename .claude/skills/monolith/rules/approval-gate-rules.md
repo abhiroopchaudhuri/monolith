@@ -26,7 +26,7 @@ Removing a gate to "go faster" is a footgun.
 |---|---|
 | `ok` / `proceed` / `yes` | Advance to Stage 1. |
 | `change <field> to <value>` | Patch manifest, re-show, re-ask. |
-| `abort` / `stop` | Delete `out/<runId>/`. End run. |
+| `abort` / `stop` | Set `state.meta.status = "aborted"`. End run. |
 | Silent hold | Keep waiting. Do not progress. |
 
 ### G2 — Plan

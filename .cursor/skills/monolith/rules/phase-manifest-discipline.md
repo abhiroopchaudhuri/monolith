@@ -13,7 +13,6 @@ Every agent file under `agents/` carries frontmatter with explicit `reads` and `
 ```yaml
 ---
 role: lead-designer
-model: sonnet
 invoked_by: orchestrator (after ux-architect, before design-principal)
 produces: <runRoot>/docs/design_decisions.md, <runRoot>/docs/best_practices.md
 reads:
@@ -75,26 +74,25 @@ This discipline also shrinks the context budget. At Haiku-tier, every unnecessar
 | 2a | ds-indexer | DS source (MCP/repo), `component-index.schema.json` |
 | 2b | guidelines-resolver | guideline inputs, `*.schema.json` |
 | 2c | theming-resolver | checkpoint-02, checkpoint-03, theme inputs, `theme-spec.schema.json`, themeability-registry |
-| 2d | market-researcher | brief, productType, competitor seeds |
-| 3 | competitive-synthesizer | checkpoint-05, brief |
-| 4 | researcher | checkpoint-01, checkpoint-03, checkpoint-05, brief, research-cache |
-| 5 | product-manager | checkpoint-04, checkpoint-06, checkpoint-08, brief, commercial-viability rule |
-| 6 | ux-strategist | checkpoint-05, checkpoint-06, checkpoint-07, brief |
-| 7 | ux-architect | checkpoint-06, checkpoint-07, checkpoint-08, brief, layout guideline |
-| 8 | lead-designer | checkpoint-09, theme-spec, component-index, all guidelines, patterns INDEX |
-| 8b | ds-extension-judge | (invoked per extension request) extension request, theme-spec, component-index |
-| 9 | design-principal | checkpoint-10, checkpoint-08, research, market-research |
-| 9b | aesthetic-director | checkpoint-10, checkpoint-11, theme-spec, rules 19/20, anti-generic-examples |
-| 10 | ux-writer | checkpoint-11, checkpoint-12, voice guideline, copy rules |
-| 11 | engineering-manager | checkpoint-10, checkpoint-11, checkpoint-12, theme-spec, component-index |
-| 12 | pattern-decider | checkpoint-14, patterns INDEX, design_decisions |
-| 13 | developer | checkpoint-14, checkpoint-15, theme-spec, component-index, ux-writing-pass, templates/ |
-| 14 | dev-qa | appRoot, component-index, rules 0/9/19/20 |
-| 15 | production-readiness-auditor | appRoot, build_specs, rules 9/11 |
-| 16 | runtime-inspector | appRoot, build_specs, runtime rules |
-| 17 | design-qa | appRoot, checkpoint-11, checkpoint-12, theme-spec, rules 15/19/20 |
-| 18 | commercial-auditor | appRoot, checkpoint-07, checkpoint-08, commercial rules |
-| 19 | self-healer | the issues list from the failed QA agent + scope files only |
+| 2d | market-researcher | brief, productType, competitor seeds (produces market-research.md + inlined competitive-synthesis.md) |
+| 3 | researcher | checkpoint-01, checkpoint-03, checkpoint-05, brief, research-cache |
+| 4 | product-manager | checkpoint-04, checkpoint-06, checkpoint-08, brief, commercial-viability rule |
+| 5 | ux-strategist | checkpoint-05, checkpoint-06, checkpoint-07, brief |
+| 6 | ux-architect | checkpoint-06, checkpoint-07, checkpoint-08, brief, layout guideline |
+| 7 | lead-designer | checkpoint-09, theme-spec, component-index, all guidelines, patterns INDEX |
+| 7b | ds-extension-judge | (invoked per extension request) extension request, theme-spec, component-index |
+| 8 | design-principal | checkpoint-10, checkpoint-08, research, market-research |
+| 8b | aesthetic-director | checkpoint-10, checkpoint-11, theme-spec, rules 19/20, anti-generic-examples |
+| 9 | ux-writer | checkpoint-11, checkpoint-12, voice guideline, copy rules |
+| 10 | engineering-manager | checkpoint-10, checkpoint-11, checkpoint-12, theme-spec, component-index |
+| 11 | pattern-decider | checkpoint-14, patterns INDEX, design_decisions |
+| 12 | developer | checkpoint-14, checkpoint-15, theme-spec, component-index, ux-writing-pass, templates/ |
+| 13 | dev-qa | appRoot, component-index, rules 0/9/19/20 |
+| 14 | production-readiness-auditor | appRoot, build_specs, rules 9/11 |
+| 15 | runtime-inspector | appRoot, build_specs, runtime rules |
+| 16 | design-qa | appRoot, checkpoint-11, checkpoint-12, theme-spec, rules 15/19/20 |
+| 17 | commercial-auditor | appRoot, checkpoint-07, checkpoint-08, commercial rules |
+| 18 | self-healer | the issues list from the failed QA agent + scope files only |
 
 Every agent's own `reads:` block is the authoritative version. This table is a reference.
 

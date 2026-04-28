@@ -12,12 +12,12 @@ Phase 2 consumes, in order of necessity:
 
 | File | Required? | Content |
 |---|---|---|
-| `out/<runId>/docs/screen-plan.json` | **REQUIRED** | Per-screen semantic map (see §2 below). |
-| `out/<runId>/ds-knowledge/tokens.json` | Strongly recommended | For cross-checking Figma variables. |
-| `out/<runId>/ds-knowledge/component-index.json` | Optional | For variant disambiguation in Phase 2. |
-| `out/<runId>/app/` (served via localhost) | Phase 1.5 needs it | html.to.design reads the rendered screen. |
-| `out/<runId>/docs/design_decisions.md` | Optional | For human review in Phase 2. |
-| `out/<runId>/docs/pattern_decisions.md` | Optional | Tells Phase 2 which sections should be `exact-swap` vs `compose`. |
+| `<runRoot>/docs/screen-plan.json` | **REQUIRED** | Per-screen semantic map (see §2 below). |
+| `<runRoot>/ds-knowledge/tokens.json` | Strongly recommended | For cross-checking Figma variables. |
+| `<runRoot>/ds-knowledge/component-index.json` | Optional | For variant disambiguation in Phase 2. |
+| `<runRoot>/app/` (served via localhost) | Phase 1.5 needs it | html.to.design reads the rendered screen. |
+| `<runRoot>/docs/design_decisions.md` | Optional | For human review in Phase 2. |
+| `<runRoot>/docs/pattern_decisions.md` | Optional | Tells Phase 2 which sections should be `exact-swap` vs `compose`. |
 
 ## screen-plan.json shape
 
@@ -94,9 +94,9 @@ The orchestrator prints this at G3 `accept`:
 
 ```
 /rewire-to-ds <figma-frame-url>
-  --plan   out/<runId>/docs/screen-plan.json
-  --tokens out/<runId>/ds-knowledge/tokens.json
-  --index  out/<runId>/ds-knowledge/component-index.json
+  --plan   <runRoot>/docs/screen-plan.json
+  --tokens <runRoot>/ds-knowledge/tokens.json
+  --index  <runRoot>/ds-knowledge/component-index.json
 ```
 
 ## What Phase 1 MUST NOT assume about Phase 2
@@ -112,7 +112,7 @@ Phase 1.5 (html.to.design) needs the running app reachable at a URL. The orchest
 
 ```
 Localhost: http://localhost:<port>
-Start: cd out/<runId>/app && npm run dev
+Start: cd <runRoot>/app && npm run dev
 
 (Phase 1.5 importer reads this URL in a browser.)
 ```

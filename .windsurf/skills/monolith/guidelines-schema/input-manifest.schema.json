@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://monolith/input-manifest.schema.json",
+  "title": "InputManifest",
+  "type": "object",
+  "required": ["runId", "brief", "ds", "guidelines", "promptType", "constraints"],
+  "properties": {
+    "runId": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}_[a-z0-9-]+$" },
+    "brief": { "type": "string", "minLength": 1 },
+    "ds": {
+      "type": "object",
+      "required": ["source", "name", "version"],
+      "properties": {
+        "source": { "enum": ["mcp", "repo", "both", "blocked"] },
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "mcp": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["name", "reachable"],
+              "properties": {
+                "name": { "type": "string" },
+                "reachable": { "type": "boolean" }
+              }
+            }
+          ]
+        },
+        "repo": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["path", "adapterPath"],
+              "properties": {
+                "path": { "type": "string" },
+                "adapterPath": { "type": "string" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "guidelines": {
+      "type": "object",
+      "required": ["source"],
+      "properties": {
+        "source": { "enum": ["provided", "website", "repo-inline", "generated", "blocked"] },
+        "files": { "type": ["array", "null"], "items": { "type": "string" } },
+        "url": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+    "promptType": { "enum": ["single-screen", "multi-screen-app", "feature-add", "ambiguous"] },
+    "constraints": {
+      "type": "object",
+      "required": ["theme", "density", "breakpoints", "locale"],
+      "properties": {
+        "theme": { "enum": ["light", "dark", "both"] },
+        "density": { "enum": ["compact", "comfortable", "spacious"] },
+        "breakpoints": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "locale": { "type": "string" }
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "question", "blockingStage"],
+        "properties": {
+          "field": { "type": "string" },
+          "question": { "type": "string" },
+          "blockingStage": { "type": "integer", "minimum": 0, "maximum": 12 }
+        }
+      }
+    }
+  }
+}

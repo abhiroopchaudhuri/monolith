@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://monolith/state.schema.json",
+  "title": "Monolith State Tree",
+  "description": "Single source of truth for a monolith run. Replaces checkpoints, artifacts DB, and issue tracking.",
+  "type": "object",
+  "required": ["meta", "input", "phases", "artifacts", "qa", "issues", "healLog", "patterns"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["version", "runId", "startedAt", "status"],
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "runId": { "type": "string" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["planning", "building", "qa", "review", "completed", "aborted"] }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": ["manifest"],
+      "properties": {
+        "manifest": { "type": "object" },
+        "fingerprint": { "type": "string" }
+      }
+    },
+    "cache": {
+      "type": "object",
+      "properties": {
+        "dsKnowledge": { "$ref": "#/definitions/cacheEntry" },
+        "guidelines": { "$ref": "#/definitions/cacheEntry" },
+        "research": { "$ref": "#/definitions/cacheEntry" },
+        "build": { "$ref": "#/definitions/cacheEntry" }
+      }
+    },
+    "phases": {
+      "type": "object",
+      "properties": {
+        "triage": { "$ref": "#/definitions/phase" },
+        "dsIndexer": { "$ref": "#/definitions/phase" },
+        "guidelinesResolver": { "$ref": "#/definitions/phase" },
+        "marketResearcher": { "$ref": "#/definitions/phase" },
+        "researcher": { "$ref": "#/definitions/phase" },
+        "productManager": { "$ref": "#/definitions/phase" },
+        "uxStrategist": { "$ref": "#/definitions/phase" },
+        "uxArchitect": { "$ref": "#/definitions/phase" },
+        "leadDesigner": { "$ref": "#/definitions/phase" },
+        "dsExtensionJudge": { "$ref": "#/definitions/phase" },
+        "designPrincipal": { "$ref": "#/definitions/phase" },
+        "aestheticDirector": { "$ref": "#/definitions/phase" },
+        "uxWriter": { "$ref": "#/definitions/phase" },
+        "engineeringManager": { "$ref": "#/definitions/phase" },
+        "patternDecider": { "$ref": "#/definitions/phase" },
+        "developer": { "$ref": "#/definitions/phase" },
+        "devQa": { "$ref": "#/definitions/phase" },
+        "productionReadiness": { "$ref": "#/definitions/phase" },
+        "runtimeInspector": { "$ref": "#/definitions/phase" },
+        "designQa": { "$ref": "#/definitions/phase" },
+        "commercialAuditor": { "$ref": "#/definitions/phase" }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "research": { "$ref": "#/definitions/artifact" },
+        "prd": { "$ref": "#/definitions/artifact" },
+        "informationArchitecture": { "$ref": "#/definitions/artifact" },
+        "userFlow": { "$ref": "#/definitions/artifact" },
+        "designDecisions": { "$ref": "#/definitions/artifact" },
+        "bestPractices": { "$ref": "#/definitions/artifact" },
+        "critique": { "$ref": "#/definitions/artifact" },
+        "aestheticAudit": { "$ref": "#/definitions/artifact" },
+        "uxWriting": { "$ref": "#/definitions/artifact" },
+        "buildSpecs": { "$ref": "#/definitions/artifact" },
+        "patternDecisions": { "$ref": "#/definitions/artifact" },
+        "commercialAudit": { "$ref": "#/definitions/artifact" },
+        "delivery": { "$ref": "#/definitions/artifact" }
+      }
+    },
+    "qa": {
+      "type": "object",
+      "properties": {
+        "devQa": { "$ref": "#/definitions/qaGate" },
+        "productionReadiness": { "$ref": "#/definitions/qaGate" },
+        "runtimeInspector": { "$ref": "#/definitions/qaGate" },
+        "designQa": { "$ref": "#/definitions/qaGate" },
+        "commercialAuditor": { "$ref": "#/definitions/qaGate" }
+      }
+    },
+    "issues": {
+      "type": "object",
+      "required": ["open", "resolved", "waived"],
+      "properties": {
+        "open": { "type": "array", "items": { "$ref": "#/definitions/issue" } },
+        "resolved": { "type": "array", "items": { "$ref": "#/definitions/issue" } },
+        "waived": { "type": "array", "items": { "$ref": "#/definitions/issue" } }
+      }
+    },
+    "healLog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["gate", "attempt", "issuesCount", "timestamp"],
+        "properties": {
+          "gate": { "type": "string" },
+          "attempt": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "issuesCount": { "type": "integer" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "patchManifest": { "type": "object" }
+        }
+      }
+    },
+    "patterns": {
+      "type": "object",
+      "required": ["reused", "promotedThisRun"],
+      "properties": {
+        "reused": { "type": "array", "items": { "type": "string" } },
+        "promotedThisRun": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "pid": { "type": "integer" },
+        "url": { "type": "string", "format": "uri" },
+        "status": { "type": "string", "enum": ["running", "stopped", "crashed"] }
+      }
+    }
+  },
+  "definitions": {
+    "cacheEntry": {
+      "type": "object",
+      "properties": {
+        "key": { "type": "string" },
+        "path": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "phase": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "active", "done", "skipped", "failed"] },
+        "checkpoint": { "type": "object" },
+        "outputs": { "type": "array", "items": { "type": "string" } },
+        "fingerprint": { "type": "string" },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "properties": {
+        "summary": { "type": "string" },
+        "fullPath": { "type": "string" },
+        "tokenCount": { "type": "integer" },
+        "lastModified": { "type": "string", "format": "date-time" },
+        "version": { "type": "integer", "default": 1 }
+      }
+    },
+    "qaGate": {
+      "type": "object",
+      "required": ["attempts", "status"],
+      "properties": {
+        "attempts": { "type": "integer", "minimum": 0 },
+        "lastIssues": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["pending", "running", "clean", "healing", "blocked"] }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "required": ["id", "gate", "attempt", "severity", "category", "observation"],
+      "properties": {
+        "id": { "type": "string" },
+        "gate": { "type": "string" },
+        "attempt": { "type": "integer" },
+        "severity": { "type": "string", "enum": ["blocker", "major", "minor"] },
+        "category": { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "file": { "type": "string" },
+            "line": { "type": "integer" },
+            "route": { "type": "string" }
+          }
+        },
+        "observation": { "type": "string" },
+        "suggestedFix": { "type": "string" }
+      }
+    }
+  }
+}

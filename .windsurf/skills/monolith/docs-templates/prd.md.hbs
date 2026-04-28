@@ -1,0 +1,63 @@
+---
+runId: {{runId}}
+generated: {{generatedAt}}
+owner: product-manager
+---
+
+# PRD — {{briefShort}}
+
+## Problem statement
+
+{{problem}}
+
+## Goals
+
+{{#each goals}}
+- {{this}}
+{{/each}}
+
+## Non-goals
+
+{{#each nonGoals}}
+- {{this}}
+{{/each}}
+
+## User stories
+
+{{#each storyGroups}}
+### {{this.persona}}
+{{#each this.stories}}
+- **{{this.id}}** — As a {{this.asA}}, I want {{this.iWant}}, so that {{this.soThat}}.
+  - Acceptance:
+    {{#each this.acceptance}}
+    - {{this}}
+    {{/each}}
+{{/each}}
+
+{{/each}}
+
+## MVP scope vs later
+
+| MVP | Later |
+|---|---|
+{{#each mvpRows}}
+| {{this.mvp}} | {{this.later}} |
+{{/each}}
+
+## Success metrics
+
+### Leading
+{{#each leading}}
+- **{{this.name}}** — {{this.definition}}. Measured via: {{this.method}}.
+{{/each}}
+
+### Lagging
+{{#each lagging}}
+- **{{this.name}}** — {{this.definition}}. Measured via: {{this.method}}.
+{{/each}}
+
+## Open questions
+
+{{#each openQuestions}}
+- {{this}}
+{{/each}}

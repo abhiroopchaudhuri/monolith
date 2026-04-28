@@ -53,7 +53,7 @@ Closed the gap between "well-planned, well-built product" and "product that does
 
 Closed the gap between "correctly built app" and "product that can actually win its market":
 
-1. **Market research first.** Every run starts with real competitor analysis. [rules/market-research-mandate.md](rules/market-research-mandate.md) + `agents/market-researcher.md` + `agents/competitive-synthesizer.md`.
+1. **Market research first.** Every run starts with real competitor analysis. [rules/market-research-mandate.md](rules/market-research-mandate.md) + `agents/market-researcher.md` (which now includes inlined competitive synthesis).
 2. **Differentiation is explicit.** 3–5 bets, each citing a competitor gap + evidence weight. [rules/differentiation-mandate.md](rules/differentiation-mandate.md) + `agents/ux-strategist.md`.
 3. **DS extensions are ruled, not assumed.** Five-test gate for every proposed custom component or token. [rules/ds-extension-criteria.md](rules/ds-extension-criteria.md) + `agents/ds-extension-judge.md`.
 4. **Senior-designer critique.** `design-principal` grades against [rules/ui-excellence-standard.md](rules/ui-excellence-standard.md); up to 2 revision rounds with lead-designer.
@@ -65,7 +65,7 @@ Closed the gap between "correctly built app" and "product that can actually win 
 
 ```
 triage →
-  [discovery] ds-indexer ‖ guidelines-resolver ‖ market-researcher → competitive-synthesizer →
+  [discovery] ds-indexer ‖ guidelines-resolver ‖ market-researcher →
   [research] researcher → PM → ux-strategist →
   [design] ux-architect → lead-designer ↔ ds-extension-judge → design-principal → aesthetic-director → ux-writer →
   [specs] eng-manager →

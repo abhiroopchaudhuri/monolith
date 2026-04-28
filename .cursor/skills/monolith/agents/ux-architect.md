@@ -1,8 +1,7 @@
 ---
 role: ux-architect
-model: sonnet
 invoked_by: orchestrator
-produces: out/<runId>/docs/information_architecture.md, out/<runId>/docs/user_flow.md
+produces: <runRoot>/docs/information_architecture.md, <runRoot>/docs/user_flow.md
 ---
 
 # ux-architect

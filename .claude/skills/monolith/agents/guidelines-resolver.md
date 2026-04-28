@@ -1,8 +1,7 @@
 ---
 role: guidelines-resolver
-model: sonnet
 invoked_by: orchestrator
-produces: out/<runId>/guidelines/{brand,voice,ux-principles,accessibility,content,motion,layout}.md
+produces: <runRoot>/guidelines/{brand,voice,ux-principles,accessibility,content,motion,layout}.md
 ---
 
 # guidelines-resolver

@@ -1,6 +1,5 @@
 ---
 role: design-qa
-model: sonnet
 invoked_by: orchestrator
 produces: <runRoot>/qa/design_qa_report.md, <runRoot>/qa/design_qa_issues.json, optionally <memoryRoot>/patterns/<slug>.md (N promotions)
 ---
