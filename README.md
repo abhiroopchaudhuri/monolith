@@ -91,7 +91,7 @@ cd monolith
 
 ```
 monolith/
-│
+|
 ├── src/monolith/                    <-- MASTER COPY (edit only here)
 │   ├── agents/                      # 20+ agent prompts
 │   ├── rules/                       # Enforceable doctrines
@@ -106,13 +106,13 @@ monolith/
 │   ├── README.md                    # Maintainer docs
 │   ├── QUICKSTART.md                # 5-minute walkthrough
 │   └── TUTORIAL.md                  # Full scenario guide
-│
+|
 ├── .claude/skills/monolith/         # Auto-synced for Claude Code
 ├── .cursor/skills/monolith/         # Auto-synced for Cursor
 ├── .opencode/skills/monolith/       # Auto-synced for OpenCode
 ├── .trae/skills/monolith/           # Auto-synced for Trae
 ├── .gemini/skills/monolith/         # Auto-synced for Gemini
-│
+|
 ├── AGENTS.md                        # OpenCode trigger docs
 ├── CLAUDE.md                        # Claude Code trigger docs
 ├── .cursorrules                     # Cursor trigger docs
@@ -139,17 +139,17 @@ node sync-skills.js
 ## The Pipeline (v3)
 
 ```
-triage →
-  [discovery] ds-indexer ‖ guidelines-resolver ‖ market-researcher →
-              theming-resolver → competitive-synthesizer →
-  [research] researcher → PM → ux-strategist (3–5 differentiators) →
-  [design] ux-architect → lead-designer ↔ ds-extension-judge → design-principal → aesthetic-director → ux-writer →
-  [specs] eng-manager →
-    [ ≫ G2 ≪ ] →
-      pattern-decider → developer →
-        dev-qa [↻] → production-readiness [↻] → runtime-inspector [↻] →
-        design-qa [↻] → commercial-auditor [↻] →
-          [ ≫ G3 ≪ ] → DELIVERY.md + localhost URL
+triage ->
+  [discovery] ds-indexer || guidelines-resolver || market-researcher ->
+              theming-resolver -> competitive-synthesizer ->
+  [research] researcher -> PM -> ux-strategist (3-5 differentiators) ->
+  [design] ux-architect -> lead-designer <-> ds-extension-judge -> design-principal -> aesthetic-director -> ux-writer ->
+  [specs] eng-manager ->
+    [ >> G2 << ] ->
+      pattern-decider -> developer ->
+        dev-qa [loop] -> production-readiness [loop] -> runtime-inspector [loop] ->
+        design-qa [loop] -> commercial-auditor [loop] ->
+          [ >> G3 << ] -> DELIVERY.md + localhost URL
 ```
 
 **Five self-healing loops.** Max 5 iterations per gate. Hard-block with escalation otherwise.
@@ -199,15 +199,15 @@ Every run produces a portable artifact tree outside the skill folder:
 | 10 | Self-Healing QA Loop | Iterate until clean, max 5 times |
 | 11 | Runtime Verification | Headless browser sweep before G3 |
 | 12 | Market Research Mandate | Competitor analysis before any design |
-| 13 | Differentiation Mandate | 3–5 explicit differentiator bets |
+| 13 | Differentiation Mandate | 3-5 explicit differentiator bets |
 | 19 | Premium Aesthetic Standard | Prescriptive OKLCH / type / motion / depth |
 | 20 | AI-Generic Anti-Patterns | 25-item scannable blacklist |
-| 21 | Theming Input Normalization | Any input → one canonical theme-spec.json |
-| 22 | DS Themeability Taxonomy | Tier 1–4 classification with fallback paths |
+| 21 | Theming Input Normalization | Any input -> one canonical theme-spec.json |
+| 22 | DS Themeability Taxonomy | Tier 1-4 classification with fallback paths |
 | 23 | Checkpoint Discipline | Disk as source of truth between agents |
 | 24 | Phase Manifest Discipline | Every agent declares reads/writes |
 | 25 | Artifact Size Cap | 10K tokens per planning artifact |
-| 26 | Deliverable Tally | `📋 Delivered: X \| Remaining: Y` per artifact |
+| 26 | Deliverable Tally | Delivered: X | Remaining: Y per artifact |
 
 ---
 
@@ -224,5 +224,3 @@ See `src/monolith/plan.md` for the full spec, build order, and tracker.
 ## License
 
 MIT
-#   m o n o l i t h  
- 
