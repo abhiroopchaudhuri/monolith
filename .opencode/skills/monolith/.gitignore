@@ -1,7 +1,0 @@
-node_modules/
-dist/
-.monolith-cache/
-.monolith-runs/
-.monolith-memory/
-*.log
-.DS_Store
