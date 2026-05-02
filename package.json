@@ -1,0 +1,46 @@
+{
+  "name": "monolith-skill",
+  "version": "3.3.0",
+  "description": "End-to-end AI agent workflow that turns a one-line product brief into a market-grade React app against any design system. Drop-in skill for Claude Code, Cursor, OpenCode, Gemini CLI, Trae, Windsurf, Kiro, and Aider.",
+  "type": "module",
+  "bin": {
+    "monolith-skill": "bin/monolith.js"
+  },
+  "files": [
+    "bin/",
+    "src/skill/",
+    "src/installer/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "sync": "node bin/monolith.js init --all --force",
+    "pack:check": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "claude",
+    "cursor",
+    "gemini",
+    "skill",
+    "react",
+    "design-system",
+    "code-generation",
+    "product-development"
+  ],
+  "author": "Abhiroop Chaudhuri",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abhiroopchaudhuri/monolith-skill.git"
+  },
+  "homepage": "https://github.com/abhiroopchaudhuri/monolith-skill#readme",
+  "bugs": {
+    "url": "https://github.com/abhiroopchaudhuri/monolith-skill/issues"
+  }
+}
