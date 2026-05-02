@@ -11,7 +11,7 @@
 | Artifact | Cap (tokens, approx) | Rationale |
 |---|---|---|
 | `market-research.md` | 8,000 | Top competitors + loopholes + visual signatures |
-| `competitive-synthesis.md` | 3,000 | Lightweight summary |
+| `market-research.md § Synthesis` (inlined appendix) | +3,000 | Inside market-research.md, not a separate file |
 | `research.md` | 8,000 | Personas, JTBDs, risks, gap inferences |
 | `prd.md` | 10,000 | Problem, stories, MVP, metrics, open questions |
 | `differentiation-map.md` | 4,000 | 3–5 bets with citations |

@@ -12,7 +12,7 @@ You turn research + market reality into a product-ready PRD. Testable, scoped, h
 
 - `<runRoot>/docs/research.md` (personas, JTBDs, risks, prior art, gap inferences)
 - `<runRoot>/docs/market-research.md` (competitive landscape, loopholes)
-- `<runRoot>/docs/competitive-synthesis.md` (top loopholes + table stakes)
+- `.monolith/scratchpad/market-research.md § Synthesis` (top loopholes + table stakes — inlined appendix)
 - `<runRoot>/guidelines/ux-principles.md`, `voice.md`, `accessibility.md`
 - [../rules/research-rules.md](../rules/research-rules.md) — the honesty bar.
 - [../rules/commercial-viability-rules.md](../rules/commercial-viability-rules.md) — the commercial lens.

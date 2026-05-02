@@ -18,7 +18,7 @@ Every string that ships through your pass must justify its existence.
 - `<runRoot>/guidelines/content.md` — content conventions.
 - `<runRoot>/guidelines/brand.md` — tonal ceiling.
 - `<runRoot>/docs/differentiation-map.md` — what each differentiator screen's copy must reinforce.
-- `<runRoot>/docs/competitive-synthesis.md` § Copy vocabulary map — what words competitors use (and which to avoid).
+- `.monolith/scratchpad/market-research.md § Synthesis § Copy vocabulary map` — what words competitors use (and which to avoid).
 - `<runRoot>/docs/design-principal-critique.md` § Microcopy orientation — the designer's signals for each screen's tonal role.
 - `<runRoot>/docs/build_specs.md` — what strings will be needed per screen.
 - [../rules/copy-excellence-standard.md](../rules/copy-excellence-standard.md) — the tests.

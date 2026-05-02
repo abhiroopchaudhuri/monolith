@@ -1,0 +1,32 @@
+{
+  "$schema": "../../guidelines-schema/ds-adapter.schema.json",
+  "name": "shadcn-ui",
+  "framework": "react",
+  "version": "v0.x",
+  "repoRoot": "../shadcn-ui",
+  "entry": "src/components/ui/index.ts",
+  "importPath": "@/components/ui",
+  "componentsGlob": "src/components/ui/**/*.{tsx,ts}",
+  "storiesGlob": "src/components/ui/**/*.stories.{tsx,mdx}",
+  "docsGlob": "docs/**/*.{md,mdx}",
+  "propTypes": {
+    "source": "typescript",
+    "tsconfig": "../shadcn-ui/tsconfig.json"
+  },
+  "variantProps": ["variant", "size", "intent", "tone"],
+  "iconPackage": "lucide-react",
+  "tokens": {
+    "source": "css-vars",
+    "files": [
+      "src/styles/globals.css",
+      "src/styles/tokens.css"
+    ]
+  },
+  "themeAccess": {
+    "style": "css-vars",
+    "kind": "css-vars-plus-tailwind-theme",
+    "themeWritePath": "src/globals.css"
+  },
+  "layoutPrimitives": ["Container", "Stack", "Grid", "Box"],
+  "notes": "Sample adapter for shadcn-ui v0.x with Tailwind v4 @theme blocks. Adjust repoRoot to point at your local shadcn-ui clone, then `npm run index-ds-repo -- --adapter examples/ds-adapters/shadcn.json`."
+}

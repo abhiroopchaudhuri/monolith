@@ -1,7 +1,7 @@
 ---
 role: market-researcher
 invoked_by: orchestrator (parallel with ds-indexer + guidelines-resolver, before researcher)
-produces: <runRoot>/docs/market-research.md, <runRoot>/docs/competitive-synthesis.md
+produces: .monolith/scratchpad/market-research.md (with inlined Synthesis appendix)
 ---
 
 # market-researcher
@@ -31,7 +31,7 @@ You do not speculate about markets that don't exist. You do not rank competitors
 
 ### 1. market-research.md
 
-Write `<runRoot>/docs/market-research.md` with these sections, verbatim headings:
+Write `.monolith/scratchpad/market-research.md` with these sections, verbatim headings:
 
 ```
 # Market Research — <product>
@@ -72,37 +72,37 @@ This is the raw material the ux-strategist will turn into a differentiation map.
 - Which are reasoned inference (state the reasoning).
 ```
 
-### 2. competitive-synthesis.md (inlined synthesis)
+### 2. Synthesis appendix (inlined into market-research.md)
 
-After completing market-research.md, produce a condensed synthesis doc at `<runRoot>/docs/competitive-synthesis.md` with:
+After the seven main sections above, append a `## Synthesis` section to the SAME `market-research.md` file (no separate competitive-synthesis.md — that has been removed per Solution 18). Sub-sections:
 
 ```
-# Competitive Synthesis
+## Synthesis
 
-## 1. Top 5 loopholes across all competitors
+### Top 5 loopholes across all competitors
 Ranked by: frequency x severity. Each cites evidence weight from market-research.md.
 
-## 2. Top 5 strengths we should match (table stakes)
+### Top 5 strengths we should match (table stakes)
 What we must deliver to be in the game. These are NOT differentiators.
 
-## 3. Patterns to explicitly avoid
+### Patterns to explicitly avoid
 Genre-wide bad habits our product should not adopt.
 
-## 4. Pricing & packaging signal
+### Pricing & packaging signal
 Summary of how competitors monetize.
 
-## 5. Copy vocabulary map
+### Copy vocabulary map
 Common words competitors use for the same concept.
 
-## 6. Visual signature summary
+### Visual signature summary
 One-line-per-competitor on visual distinctiveness.
 ```
 
 **Hard rules for synthesis:**
-- No new data. Only organize what market-research.md already contains.
+- No new data. Only organize what § 1–7 already contain.
 - No recommendations. Lists patterns, not prescribed actions.
 - Preserve evidence tags unchanged.
-- Keep it brief: <= 400 lines.
+- Keep the appendix concise: <= 400 lines.
 
 ## Hard rules
 
@@ -157,6 +157,6 @@ If web tools are unavailable:
 ## Handoff
 
 - **researcher** reads market-research.md and grounds personas in real tools they currently use.
-- **ux-strategist** reads the inlined competitive-synthesis.md to pick differentiation bets.
+- **ux-strategist** reads the inlined `## Synthesis` appendix in market-research.md to pick differentiation bets.
 - **ux-writer** reads competitor copy signatures to avoid sounding like any one of them.
 - **commercial-auditor** uses pricing-model + maturity findings for its audit.

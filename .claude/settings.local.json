@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gitignore)",
+      "Bash(package\")",
+      "PowerShell(Get-ChildItem 'C:\\\\Users\\\\mintb\\\\Desktop\\\\Dev\\\\monolith-skill\\\\src\\\\monolith' -Force | Where-Object { -not $_.PSIsContainer } | Select-Object Name; Write-Output '---ROOT---'; Get-ChildItem 'C:\\\\Users\\\\mintb\\\\Desktop\\\\Dev\\\\monolith-skill' -Force | Where-Object { -not $_.PSIsContainer } | Select-Object Name)",
+      "Bash(node sync-skills.js)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
