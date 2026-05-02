@@ -4,8 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "typecheck": "tsc --noEmit",
+    "sync": "node ../../sync-skills.js",
+    "triage": "tsx scripts/triage-input.ts",
     "index-ds-repo": "tsx scripts/index-ds-repo.ts",
     "index-ds-mcp": "tsx scripts/index-ds-mcp.ts",
+    "extract-tokens": "tsx scripts/extract-tokens.ts",
+    "extract-icons": "tsx scripts/extract-icons.ts",
+    "fetch-guidelines-web": "tsx scripts/fetch-guidelines-web.ts",
+    "parse-guidelines-repo": "tsx scripts/parse-guidelines-repo.ts",
+    "generate-guidelines-fallback": "tsx scripts/generate-guidelines-fallback.ts",
     "scaffold": "tsx scripts/scaffold-app.ts",
     "validate": "tsx scripts/validate-generated.ts",
     "axe": "tsx scripts/axe-run.ts",
@@ -13,7 +21,14 @@
     "visual-smoke": "tsx scripts/visual-smoke.ts",
     "start-dev": "tsx scripts/start-dev-server.ts",
     "stop-dev": "tsx scripts/stop-dev-server.ts",
-    "sync-skills": "node sync-skills.js"
+    "install-deps": "tsx scripts/install-deps.ts",
+    "resolve-browser": "tsx scripts/resolve-browser.ts",
+    "state": "tsx scripts/state-manager.ts",
+    "scratchpad": "tsx scripts/scratchpad-lifecycle.ts",
+    "render-planning-review": "tsx scripts/render-planning-review.ts",
+    "run-phase": "tsx scripts/run-phase.ts",
+    "run-qa": "tsx scripts/run-qa.ts",
+    "affected-gates": "tsx scripts/get-affected-gates.ts"
   },
   "dependencies": {
     "ts-morph": "^23.0.0",

@@ -15,8 +15,7 @@ It behaves as a complete product organization:
 
 | Real org role | This skill's agent |
 |---|---|
-| Market / competitive researcher | `market-researcher` |
-| Synthesis analyst | `competitive-synthesizer` |
+| Market / competitive researcher (+ inlined synthesis) | `market-researcher` |
 | Product researcher | `researcher` |
 | Product manager | `product-manager` |
 | UX strategist | `ux-strategist` |
@@ -40,8 +39,9 @@ It behaves as a complete product organization:
 - **Anti-AI-generic.** Prescriptive OKLCH color discipline, hairline borders, tiered shadows, named motion curves. No pastel-circle empty states.
 - **DS-agnostic.** Works with shadcn, MUI, Chakra, Radix, Mantine, Ant Design, Adobe Spectrum, custom DS, or any MCP server.
 - **Five self-healing QA loops.** dev-qa → production-readiness → runtime-inspector → design-qa → commercial-auditor. Each iterates until clean or blocks.
-- **Three approval gates.** G1 (input), G2 (plan), G3 (delivery). No silent progress.
+- **Three approval gates.** G1 (input, blocking) and G2/G3 (turn-yielding — the orchestrator stops and waits for your reply, no background work). No silent progress.
 - **Portable output.** Nothing writes inside the skill folder. Every run produces artifacts outside it.
+- **Zero-dependency runtime.** Single `.monolith/state.json` source of truth, no SQLite, no Git branching, no custom RAG. Works in a plain folder.
 
 ---
 
@@ -136,38 +136,52 @@ node sync-skills.js
 
 ---
 
-## The Pipeline (v3)
+## The Pipeline (v3.3)
 
 ```
-triage ->
-  [discovery] ds-indexer || guidelines-resolver || market-researcher ->
-              theming-resolver -> competitive-synthesizer ->
-  [research] researcher -> PM -> ux-strategist (3-5 differentiators) ->
-  [design] ux-architect -> lead-designer <-> ds-extension-judge -> design-principal -> aesthetic-director -> ux-writer ->
-  [specs] eng-manager ->
-    [ >> G2 << ] ->
-      pattern-decider -> developer ->
-        dev-qa [loop] -> production-readiness [loop] -> runtime-inspector [loop] ->
-        design-qa [loop] -> commercial-auditor [loop] ->
-          [ >> G3 << ] -> DELIVERY.md + localhost URL
+triage -> [G1 blocking] ->
+
+Track A (discovery, parallel + cacheable):
+  ds-indexer  ||  guidelines-resolver  ||  market-researcher
+                       -> theming-resolver -> researcher
+
+Track B (planning, parallel):
+  product-manager  ||  ux-strategist
+       -> ux-architect  ||  lead-designer (early draft)
+
+Track C (design quality):
+  ds-extension-judge (batch all extension requests)
+  -> design-principal  ||  aesthetic-director (parallel critique)
+  -> ux-writer -> engineering-manager
+
+[G2 turn-yield: edit .monolith/scratchpad/* and reply continue/iterate/restart] ->
+
+  pattern-decider -> developer ->
+
+Unified QA loop (Solution 3):
+  Iteration 1 (parallel):
+    dev-qa || production-readiness || runtime-inspector || design-qa || commercial-auditor
+       -> aggregate issues -> self-healer -> developer (one patch + patchManifest)
+  Iteration 2+ (delta-routed by patchManifest, max 5 iterations per gate)
+
+[G3 turn-yield: accept / iterate / abort] -> DELIVERY.md + localhost URL
 ```
 
-**Five self-healing loops.** Max 5 iterations per gate. Hard-block with escalation otherwise.
+**Unified QA loop, 5 gates** with delta-routing. Max 5 iterations per gate. Hard-block with escalation otherwise.
 
 ---
 
-## Output Layout
+## Output Layout (v3.3)
 
 Every run produces a portable artifact tree outside the skill folder:
 
 ```
 <workspaceRoot>/
-├── monolith/                        # Skill (read-only)
-├── .monolith-memory/patterns/       # Persistent pattern memory
-├── .monolith-runs/<runId>/          # Per-run planning docs + QA reports
-│   ├── docs/
-│   │   ├── market-research.md
-│   │   ├── competitive-synthesis.md
+├── monolith/                          # Skill (read-only during runs)
+├── .monolith/                         # State tree + scratchpad + cache + archive
+│   ├── state.json                     # Single source of truth (Rule 23)
+│   ├── scratchpad/                    # Live planning artifacts during the run
+│   │   ├── market-research.md         # (with inlined ## Synthesis appendix)
 │   │   ├── research.md
 │   │   ├── prd.md
 │   │   ├── differentiation-map.md
@@ -176,16 +190,23 @@ Every run produces a portable artifact tree outside the skill folder:
 │   │   ├── design_decisions.md
 │   │   ├── design-principal-critique.md
 │   │   ├── aesthetic-audit.md
-│   │   ├── ds-extensions/
+│   │   ├── ds-extensions/<slug>.md
 │   │   ├── ux-writing-pass.md
 │   │   ├── build_specs.md
 │   │   ├── pattern_decisions.md
 │   │   ├── commercial-audit.md
-│   │   └── qa.md
-│   ├── qa/
-│   └── DELIVERY.md
-└── <appName>/                       # The running React app
+│   │   ├── qa.md
+│   │   └── PLANNING_REVIEW.md         # Rendered for G2 review
+│   ├── archive/<runId>/               # Scratchpad moves here on G3 accept
+│   └── cache/<tier>/<hash>/           # Content-addressable cache for cacheable phases
+├── .monolith-memory/patterns/         # Persistent pattern memory (cross-run, append-only log.jsonl)
+└── <appName>/                         # The running React app
+    ├── src/
+    ├── qa/                            # Per-gate QA reports
+    └── DELIVERY.md
 ```
+
+**Why turn-yielding G2/G3?** The orchestrator outputs the gate message and stops. Nothing runs in the background. You can edit any file in `.monolith/scratchpad/` directly, then reply on your next turn. The orchestrator detects edits via `scratchpad-lifecycle.ts detect-edits` and re-runs only the dirty phases.
 
 ---
 

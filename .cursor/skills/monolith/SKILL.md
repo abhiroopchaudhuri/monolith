@@ -77,26 +77,22 @@ triage →
           [ ≫ G3 ≪ ] → DELIVERY.md + localhost URL
 ```
 
-**State flow.** Phase state lives in `.monolith/state.json` (unified state tree, Rule 23). Each agent declares `reads:` / `writes:` explicitly (Rule 24). Planning artifacts are size-capped (Rule 25). Every agent emits a `📋 Delivered: X | Remaining: Y` tally per artifact (Rule 26).
+**State flow.** Phase state lives in `.monolith/state.json` (unified state tree, Rule 23). Each agent declares `reads:` / `writes:` / optional `search:` explicitly (Rule 24). Planning artifacts size-capped (Rule 25). Agents emit a `📋 Outputs` declaration block; the orchestrator computes the running tally (Rule 26).
 
 Five `[↻]` self-healing loops. Max 5 iterations per gate. Hard-block with escalation otherwise.
 
 ---
 
-## Output layout (portable)
+## Output layout (v3.3, portable)
 
 ```
 <workspaceRoot>/
-├── monolith/               ← workflow (never written to)
-├── .monolith-memory/patterns/         ← persistent pattern memory
-├── <appName>/                       ← run root: app + artifacts
-│   ├── .monolith/                   ← state tree (Rule 23)
-│   │   └── state.json
-│   ├── src/                         ← generated React app
-│   ├── docs/                        ← planning artifacts
-│   │   ├── market-research.md
-│   │   ├── competitive-synthesis.md
-│   │   ├── research.md               (with Gap Inferences)
+├── monolith/                              ← workflow (never written to during runs)
+├── .monolith/                             ← state + scratchpad + cache + archive
+│   ├── state.json                         ← single source of truth (Rule 23)
+│   ├── scratchpad/                        ← live planning artifacts during the run
+│   │   ├── market-research.md             ← (with inlined ## Synthesis appendix)
+│   │   ├── research.md                    ← (with Gap Inferences)
 │   │   ├── prd.md
 │   │   ├── differentiation-map.md
 │   │   ├── information_architecture.md
@@ -109,15 +105,22 @@ Five `[↻]` self-healing loops. Max 5 iterations per gate. Hard-block with esca
 │   │   ├── build_specs.md
 │   │   ├── pattern_decisions.md
 │   │   ├── commercial-audit.md
-│   │   └── qa.md
-│   ├── qa/                          ← QA reports
-│   ├── ds-knowledge/                ← DS index + tokens + icons
-│   ├── guidelines/                  ← seven topic docs
-│   ├── theme-spec.json              ← normalized theme (Rule 21)
-│   ├── themeability-report.md       ← DS tier + fallbacks (Rule 22)
-│   └── DELIVERY.md
-└── <appName>/                        ← the running app
+│   │   ├── qa.md
+│   │   └── PLANNING_REVIEW.md             ← rendered for G2 review
+│   ├── archive/<runId>/                   ← scratchpad files move here on G3 accept
+│   └── cache/<tier>/<hash>/               ← content-addressable cache for cacheable phases
+├── .monolith-memory/patterns/             ← cross-run pattern memory (append-only log.jsonl)
+└── <appName>/                             ← the running React app + per-run artifacts
+    ├── src/                               ← generated React app
+    ├── ds-knowledge/                      ← DS index + tokens + icons
+    ├── guidelines/                        ← seven topic docs
+    ├── theme-spec.json                    ← normalized theme (Rule 21)
+    ├── themeability-report.md             ← DS tier + fallbacks (Rule 22)
+    ├── qa/                                ← QA reports per gate
+    └── DELIVERY.md
 ```
+
+**v3.3 turn-yielding gates.** G2 and G3 yield the turn — the orchestrator outputs the gate message and stops. No background work. You can edit any file under `.monolith/scratchpad/` directly, then reply on your next turn. The orchestrator detects edits via `scripts/scratchpad-lifecycle.ts detect-edits` and re-runs only dirty phases.
 
 ---
 
@@ -137,16 +140,32 @@ Five `[↻]` self-healing loops. Max 5 iterations per gate. Hard-block with esca
   - ProductType: {consumer-saas | b2b-saas | internal-tool | regulated-tool | developer-tool}
   - Competitors: <optional CSV of real product names to seed market research>
   - Mode: {--full (default) | --themeOnly | --planOnly | --lazy | --UXR | --noPRD}
+  - Cache: {--no-cache | --refresh-research | --refresh-ds | --refresh-guidelines}
+  - Resume: --resume <runId>
+  - Scratchpad: --keep-scratchpad
 ```
 
-**Mode flags** (v3.2):
+**Mode flags** (v3.3):
 
 - `--full` (default) — entire pipeline through G3 + running app.
 - `--themeOnly` — triage + ds-indexer + guidelines-resolver + theming-resolver, then stop. Produces `theme-spec.json` + `themeability-report.md`. Useful when the user just wants to know "can my DS + brand work together?"
-- `--planOnly` — discovery + research + design + specs up through G2, then stop. No app built.
-- `--lazy` — skip interactive G1/G2 prompts; auto-answer with documented defaults. G3 still interactive. Useful for ergonomic re-runs.
-- `--UXR` — research synthesis only (market-research + research.md). No design, no build.
+- `--planOnly` — discovery + research + design + specs through G2. STOP after G2 `accept`. No app built.
+- `--lazy` — auto-approve G1 if `unresolved[]` is empty; auto-`continue` at G2 if no scratchpad edits detected. G3 always interactive.
+- `--UXR` — research synthesis only (`market-research.md` + `research.md`). No design, no build.
 - `--noPRD` — skip PRD generation. Everything else runs.
+
+**Cache flags:**
+
+- `--no-cache` — bypass fingerprint cache for all cacheable phases.
+- `--refresh-research` / `--refresh-ds` / `--refresh-guidelines` — invalidate that tier only.
+
+**Resume:**
+
+- `--resume <runId>` — read `.monolith/state.json` and continue from the last `done` phase. Scratchpad must still exist.
+
+**Scratchpad:**
+
+- `--keep-scratchpad` — skip the auto-archive on G3 accept.
 
 Anything missing is resolved at G1.
 
@@ -189,7 +208,7 @@ Workflow discipline (v3.2 — stabilizes weaker LLMs):
 - **Rule 23** — Checkpoint discipline (state tree as source of truth). [rules/checkpoint-discipline.md](rules/checkpoint-discipline.md) — state between agents flows through `.monolith/state.json`, not conversation.
 - **Rule 24** — Phase manifest discipline. [rules/phase-manifest-discipline.md](rules/phase-manifest-discipline.md) — every agent declares `reads:` / `writes:` in its frontmatter.
 - **Rule 25** — Artifact size cap. [rules/artifact-size-cap.md](rules/artifact-size-cap.md) — 10K tokens per planning artifact; compression over prose.
-- **Rule 26** — Deliverable tally discipline. [rules/deliverable-tally.md](rules/deliverable-tally.md) — `📋 Delivered: X | Remaining: Y` printed after every artifact.
+- **Rule 26** — Deliverable tally discipline. [rules/deliverable-tally.md](rules/deliverable-tally.md) — agents declare a `📋 Outputs` block; the orchestrator computes and prints the running tally from `state.artifacts`.
 
 Supporting references (read-only):
 - [references/premium-design-playbook.md](references/premium-design-playbook.md) — visual knowledge base.

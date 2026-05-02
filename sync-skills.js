@@ -30,12 +30,28 @@ if (!fs.existsSync(sourceDir)) {
   process.exit(1);
 }
 
+// Items inside src/monolith/ we never want to copy to editor folders.
+const SKIP_NAMES = new Set(['node_modules', '.monolith', 'dist']);
+
 platforms.forEach((platform) => {
   const targetDir = path.join(__dirname, platform, 'skills', 'monolith');
 
   try {
+    // Clear the target first so deletes in src/monolith/ propagate.
+    if (fs.existsSync(targetDir)) {
+      fs.rmSync(targetDir, { recursive: true, force: true });
+    }
     fs.mkdirSync(targetDir, { recursive: true });
-    fs.cpSync(sourceDir, targetDir, { recursive: true, force: true });
+
+    // Copy everything from source EXCEPT the skip list.
+    for (const entry of fs.readdirSync(sourceDir)) {
+      if (SKIP_NAMES.has(entry)) continue;
+      fs.cpSync(
+        path.join(sourceDir, entry),
+        path.join(targetDir, entry),
+        { recursive: true, force: true }
+      );
+    }
     console.log(`  [OK]  ${platform}/skills/monolith`);
   } catch (err) {
     console.error(`  [FAIL] ${platform}/skills/monolith — ${err.message}`);

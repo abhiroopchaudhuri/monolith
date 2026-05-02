@@ -1,0 +1,20 @@
+node_modules/
+dist/
+
+# Per-run state (gitignored — re-derivable from scratchpad)
+.monolith/scratchpad/
+.monolith/cache/
+
+# Optional run artifacts users may or may not commit
+# .monolith/state.json
+# .monolith/archive/
+
+# Per-run app outputs (uncomment to ignore generated apps)
+# /<appName>/
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

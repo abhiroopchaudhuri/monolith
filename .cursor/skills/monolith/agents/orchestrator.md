@@ -141,6 +141,24 @@ Non-cacheable phases (user-dependent or creative): `triage`, `productManager`, `
 
 ---
 
+## Path translation (v3.0 → v3.3)
+
+Several agent specs were authored when planning artifacts lived under `<runRoot>/docs/<file>.md`. In v3.3 those same files live at `.monolith/scratchpad/<file>.md` during a run and at `.monolith/archive/<runId>/<file>.md` after G3 `accept`.
+
+**You translate transparently.** When you pass file paths to an agent in its `reads:` / `writes:` lists:
+
+| Agent spec text | Resolve to |
+|---|---|
+| `<runRoot>/docs/<file>.md` | `.monolith/scratchpad/<file>.md` |
+| `<runRoot>/checkpoints/<NN>-<phase>.json` | `state.phases.<phase>.summary` (passed as a serialized snapshot, not a file) |
+| `<runRoot>/docs/ds-extensions/<slug>.md` | `.monolith/scratchpad/ds-extensions/<slug>.md` |
+
+Agents do not write to either path directly — they declare outputs in their `📋 Outputs` block and you write the corresponding scratchpad file + state branch via `stateManager.setArtifact()`.
+
+The `<runRoot>` prefix still resolves correctly for non-scratchpad paths: `<runRoot>/ds-knowledge/`, `<runRoot>/guidelines/`, `<runRoot>/theme-spec.json`, `<runRoot>/themeability-report.md`, `<runRoot>/qa/` all live under `<workspaceRoot>/<appName>/` exactly as the agent specs describe.
+
+---
+
 ## State Tree Contract
 
 Every phase MUST write to `.monolith/state.json` via `stateManager.writeBranch()`:
@@ -293,9 +311,35 @@ On invocation:
 3. memoryRoot    = workspaceRoot + "/.monolith-memory"
 4. runsRoot      = workspaceRoot
 5. runRoot       = runsRoot + "/" + runId
-6. Init .monolith/state.json via stateManager.init(runId, brief)
+6. If --resume <runId>:
+     a. Read existing .monolith/state.json
+     b. Verify state.meta.runId matches
+     c. Continue from the last phase whose status != "done"
+   Else:
+     Init .monolith/state.json via stateManager.init(runId, brief)
 7. appName resolved by triage → appRoot = workspaceRoot + "/" + appName
 ```
+
+## Mode flag handling
+
+Parse the invocation line for these flags before triage runs:
+
+| Flag | Effect |
+|---|---|
+| `--full` (default) | entire pipeline |
+| `--themeOnly` | stop after theming-resolver; print theme-spec + themeability-report; skip G2/G3 |
+| `--planOnly` | run through G2; on `accept`/`continue`, STOP without invoking pattern-decider/developer/QA/G3 |
+| `--lazy` | auto-approve G1 if `state.input.manifest.unresolved[].length === 0`; auto-`continue` at G2 if `scratchpad-lifecycle.ts detect-edits` exits 0 |
+| `--UXR` | run through researcher; print research.md path; skip everything else |
+| `--noPRD` | skip product-manager; downstream agents tolerate missing prd via state |
+| `--no-cache` | bypass fingerprint cache (run-phase.ts respects this) |
+| `--refresh-research` | invalidate research + market-research tiers only |
+| `--refresh-ds` | invalidate ds-knowledge cache |
+| `--refresh-guidelines` | invalidate guidelines cache |
+| `--resume <runId>` | resume; do NOT init state |
+| `--keep-scratchpad` | on G3 accept, skip the `scratchpad-lifecycle.ts clear` step |
+
+Set the parsed flags into `state.meta.flags` so cacheable-phase scripts can read them.
 
 ---
 

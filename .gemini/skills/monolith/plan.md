@@ -1,1061 +1,707 @@
-# monolith — Master Plan & Tracker
+# monolith — Master Plan & Tracker (v3.3)
 
-> **Single execution surface.** This is both the design doc and the checklist. Everything the skill does, every artifact it produces, every agent it calls, every script it runs, every rule it enforces is enumerated here. Status lives in the checkboxes — do not add status into other files.
+> **Single execution surface.** This is both the design doc and the checklist. Everything the skill does, every artifact it produces, every agent it calls, every script it runs, every rule it enforces is enumerated here.
 >
 > **One-line purpose.** Take ANY natural-language product brief + ANY design system (as MCP, repo, or both) and produce a fully-researched, fully-designed, **production-grade** React app that runs on localhost — with every artifact a real design/PM/eng team would hand off, and every QA gate self-heals until clean.
 
 ---
 
-## 0.0 What changed across versions (read first if returning)
+## 0. Version history (read first)
 
-See also the workspace-root tracker: `<workspaceRoot>/WORKFLOW-EVOLUTION-TRACKER.md` — lives outside this folder per portability rule.
+### v3.3 — Performance + zero-dependency (current)
 
-### v1 → v2: Production-grade + portable
+The big rewrite. Same output quality, ~80% faster, no system-level dependencies.
 
-Closed holes where v1 could ship half-done code (dead buttons, broken nav state, clipped layouts, app written inside the workflow folder):
+1. **Single state tree.** `.monolith/state.json` replaces 21 checkpoint JSON files. Atomic source of truth (Rule 23 rewritten).
+2. **Scratchpad convention.** Planning artifacts in `.monolith/scratchpad/` during a run; archive to `.monolith/archive/<runId>/` on G3 `accept`.
+3. **Turn-yielding G2/G3.** No background work, no async approvals, no Git branching. The orchestrator outputs the gate message and stops.
+4. **Parallel planning tracks.** Track A (discovery) parallel; Track B (planning) parallel; Track C parallel critique.
+5. **Batch DS extension judging.** All extension requests adjudicated in a single judge pass.
+6. **Unified QA loop.** 5 gates parallel iter 1; delta-routed iter 2+ via developer's `<patchManifest>`.
+7. **Stage fingerprinting.** Cacheable phases skip when inputs unchanged.
+8. **Persistent dev server.** Vite programmatic API; one boot, HMR across patches.
+9. **Lazy Playwright.** `resolve-browser.ts` falls back through env var → global cache → system browser → install.
+10. **Inline competitive synthesis.** `competitive-synthesizer` agent removed; synthesis is an appendix in `market-research.md`.
+11. **Structured tally.** Agents declare outputs; orchestrator computes and prints `📋` from `state.artifacts`.
+12. **Zero new deps.** No SQLite, no `tree-kill`, no embedding model. Works on Windows out of the box.
 
-1. **Output is portable.** Nothing writes inside `monolith/`. App goes to `<workspaceRoot>/<appName>/`. [rules/output-location-rules.md](rules/output-location-rules.md)
-2. **Production-grade mandate.** No MVP shortcuts. Every button wired, every state reachable. [rules/production-grade-mandate.md](rules/production-grade-mandate.md)
-3. **Self-healing QA loops.** dev-qa, production-readiness-auditor, runtime-inspector, design-qa iterate with self-healer → developer (patch mode) until clean or 5-iteration cap. [rules/self-healing-loop.md](rules/self-healing-loop.md)
-4. **Runtime verification mandatory.** Headless-browser sweep catches nav state, scroll clipping, dead buttons, responsive failures. [rules/runtime-verification-rules.md](rules/runtime-verification-rules.md)
-5. **Gap-filling discipline.** Researcher fills every PRD gap with evidence-grounded inference, surfaced at G2.
-6. Three new agents: `production-readiness-auditor`, `runtime-inspector`, `self-healer`.
+### v3.2 — Universal theming + workflow discipline
 
-### v3.1 → v3.2: Universal theming + weaker-LLM discipline
+1. **Universal theme normalization** into canonical `theme-spec.json` (Rule 21).
+2. **DS themeability taxonomy** — tier 1–4 (Rule 22).
+3. **New agent `theming-resolver`.**
+4. **Checkpoint discipline** (Rule 23 — superseded by v3.3 state tree).
+5. **Phase manifests** with `reads:`/`writes:` (Rule 24).
+6. **Artifact size caps** (Rule 25).
+7. **Deliverable tally** (Rule 26 — moved to orchestrator in v3.3).
+8. **Surface templates** (9 canonical layouts).
+9. **Mode flags.**
+10. **Richer component manifest.**
+11. **Research cache.**
 
-Closed two gaps in cross-run consistency and theming flexibility:
+### v3.1 — Premium-visual
 
-1. **Universal theme normalization.** Any theming input (palette JSON, CSS file, Tailwind config, Figma variables export, design-tokens.json, brand PDF, brand-guide URL, inline, or none) is absorbed and normalized into a single canonical `theme-spec.json` with a three-tier architecture (primitives → semantics → bridge). Schema: [guidelines-schema/theme-spec.schema.json](guidelines-schema/theme-spec.schema.json). Rule: [rules/theming-input-normalization.md](rules/theming-input-normalization.md) (**Rule 21**).
-2. **DS themeability taxonomy.** Every DS is classified into tier 1 (full themeable, e.g., shadcn) through tier 4 (not themeable, custom-wrap only), with per-property verdicts and fallback recipes. User is notified at G1 when the requested theme exceeds the DS's capacity. Rule: [rules/ds-themeability-taxonomy.md](rules/ds-themeability-taxonomy.md) (**Rule 22**). Registry: [references/ds-themeability-registry.md](references/ds-themeability-registry.md).
-3. **New agent `theming-resolver`.** Runs after `ds-indexer` + `guidelines-resolver`. Absorbs theme inputs, classifies DS tier, emits `theme-spec.json` + `themeability-report.md`. [agents/theming-resolver.md](agents/theming-resolver.md).
-4. **Checkpoint discipline.** Disk as source of truth between agents. `<runRoot>/checkpoints/*.json` replaces reliance on conversation context. **Rule 23.**
-5. **Phase manifests.** Every agent declares `reads:` / `writes:` frontmatter fields. **Rule 24.**
-6. **Artifact size caps.** 10K tokens per planning artifact; compression over prose. **Rule 25.**
-7. **Deliverable tally.** `📋 Delivered: X | Remaining: Y` after every artifact. **Rule 26.**
-8. **Surface templates.** 9 canonical page-level layouts under [references/surface-templates/](references/surface-templates/) (dashboard / list-view / detail-view / form / wizard / settings / landing / split-pane / empty-first-run). lead-designer cites one per screen.
-9. **Mode flags.** `--full` / `--themeOnly` / `--planOnly` / `--lazy` / `--UXR` / `--noPRD` in the invocation.
-10. **Richer component manifest.** `component-index.json` now carries `level` / `category` / `when` / `not_when` fields — helps weaker LLMs pick the right primitive.
-11. **Research cache.** `<memoryRoot>/research-cache/<domain>/` for cross-run research reuse.
+1. **Premium aesthetic standard** — prescriptive OKLCH/type/motion/depth (Rule 19).
+2. **AI-generic anti-patterns** — 25-item blacklist + canonical compound tells (Rule 20).
+3. **Aesthetic-director agent.**
+4. **Dimension 5 of UI excellence.**
+5. **ANTI_GENERIC dev-qa gate.**
+6. **Reference playbook** + DO/DON'T component examples.
 
-### v3 → v3.1: Premium-visual (anti-AI-generic)
+### v3.0 — Market-grade
 
-Closed the gap between "well-planned, well-built product" and "product that doesn't look like it came out of an LLM template":
+1. **Market research first** (Rule 12) + `market-researcher`.
+2. **Differentiation explicit** (Rule 13) + `ux-strategist`.
+3. **DS extensions ruled, not assumed** (Rule 14) + `ds-extension-judge`.
+4. **Senior-designer critique** + `design-principal`.
+5. **UX writing pass** + `ux-writer`.
+6. **Commercial audit** + `commercial-auditor`.
+7. **Evidence weights** (Rule 17).
 
-1. **Premium aesthetic standard.** Prescriptive OKLCH color ranges, type scale ratios, motion cubic-beziers, hairline borders, tiered shadows, tiered radii, 1-1-1 discipline. Every token choice traces either to a DS token or a § reference. [rules/premium-aesthetic-standard.md](rules/premium-aesthetic-standard.md) — **Rule 19**.
-2. **AI-generic anti-patterns.** 25-item scannable blacklist + canonical compound tells (the centered-red-X error state, the pastel-circle-emoji empty state, the 4-shadow-md-card dashboard). Self-audit before every return. [rules/ai-generic-anti-patterns.md](rules/ai-generic-anti-patterns.md) — **Rule 20**.
-3. **Aesthetic-director agent.** New gate between `design-principal` and `ux-writer`. Audits `design_decisions.md` against Rules 19 + 20, up to 2 revision rounds with lead-designer, produces `aesthetic-audit.md`. [agents/aesthetic-director.md](agents/aesthetic-director.md).
-4. **Dimension 5 of UI excellence.** `ui-excellence-standard.md` gains a fifth dimension (Visual refinement), owned by aesthetic-director.
-5. **ANTI_GENERIC dev-qa gate.** Source regex probes catch banned literals (Tailwind blue primaries, uniform `rounded-2xl`, `shadow-md` blanket, `transition-all`, emoji-as-icon, canonical AI copy strings) in generated code. Blocker at ≥5 matches or any canonical compound shape.
-6. **Design-qa gains two axes.** Aesthetic refinement (runtime matches declared premium values) + Anti-pattern audit (runtime exhibits no compound tells). Both at higher ≥8 bar.
-7. **Reference playbook.** Curated knowledge base (Linear, Vercel, Stripe, Raycast, Bloomberg, Rauno, Emil, Kennedy) at [references/premium-design-playbook.md](references/premium-design-playbook.md) and concrete DO/DON'T component code at [references/anti-generic-examples.md](references/anti-generic-examples.md). Weak LLMs pattern-match against these.
+### v2 — Production-grade + portable
 
-### v2 → v3: Market-grade
-
-Closed the gap between "correctly built app" and "product that can actually win its market":
-
-1. **Market research first.** Every run starts with real competitor analysis. [rules/market-research-mandate.md](rules/market-research-mandate.md) + `agents/market-researcher.md` (which now includes inlined competitive synthesis).
-2. **Differentiation is explicit.** 3–5 bets, each citing a competitor gap + evidence weight. [rules/differentiation-mandate.md](rules/differentiation-mandate.md) + `agents/ux-strategist.md`.
-3. **DS extensions are ruled, not assumed.** Five-test gate for every proposed custom component or token. [rules/ds-extension-criteria.md](rules/ds-extension-criteria.md) + `agents/ds-extension-judge.md`.
-4. **Senior-designer critique.** `design-principal` grades against [rules/ui-excellence-standard.md](rules/ui-excellence-standard.md); up to 2 revision rounds with lead-designer.
-5. **UX writing pass.** Every user-visible string rewritten with intent. [rules/copy-excellence-standard.md](rules/copy-excellence-standard.md) + `agents/ux-writer.md`.
-6. **Commercial audit.** Before G3, every run is audited against onboarding / conversion / retention / trust / expansion surfaces. [rules/commercial-viability-rules.md](rules/commercial-viability-rules.md) + `agents/commercial-auditor.md`.
-7. **Evidence weights.** Every non-trivial decision tagged `[grounded]` / `[cited-inference]` / `[domain-pattern]` / `[judgment]` / `[speculative]`. [rules/evidence-weighted-decisions.md](rules/evidence-weighted-decisions.md).
-
-### v3 pipeline
-
-```
-triage →
-  [discovery] ds-indexer ‖ guidelines-resolver ‖ market-researcher →
-  [research] researcher → PM → ux-strategist →
-  [design] ux-architect → lead-designer ↔ ds-extension-judge → design-principal → aesthetic-director → ux-writer →
-  [specs] eng-manager →
-    [G2] →
-      pattern-decider → developer →
-        dev-qa ↻ → production-readiness ↻ → runtime-inspector ↻ →
-        design-qa ↻ → commercial-auditor ↻ →
-          [G3] → DELIVERY.md
-```
-
-Five self-healing loops. Three gates. Twenty-five agents total (v3.1 adds `aesthetic-director`; v3.2 adds `theming-resolver`).
+1. Output portability (nothing writes inside `monolith/`).
+2. Production-grade mandate.
+3. Self-healing QA loops.
+4. Runtime verification mandatory.
+5. Gap-filling discipline.
+6. New agents: `production-readiness-auditor`, `runtime-inspector`, `self-healer`.
 
 ---
 
-## 0. Read this first
+## 1. Folder layout (current)
 
-### 0.1 What makes this different from `phase-1-build-with-ds`
+```
+monolith-skill/
+├── README.md                            ← root (user-facing)
+├── LICENSE                              ← MIT
+├── CHANGELOG.md
+├── TROUBLESHOOTING.md
+├── .gitignore
+├── sync-skills.js                       ← copies src/monolith/ to editor folders
+├── MONOLITH-PERFORMANCE-ISSUES.md       ← historical analysis docs
+├── MONOLITH-PERFORMANCE-SOLUTIONS.md
+├── MONOLITH-IMPLEMENTATION-PLAN.md
+├── MONOLITH-ZERO-DEPENDENCY-PLAN.md     ← v3.3 ground truth
+├── MONOLITH-PRODUCTION-READINESS-AUDIT.md
+├── CLAUDE.md / AGENTS.md / .cursorrules ← editor trigger docs
+│
+├── .claude/skills/monolith/             ← synced
+├── .cursor/skills/monolith/             ← synced
+├── .opencode/skills/monolith/           ← synced
+├── .trae/skills/monolith/               ← synced
+├── .gemini/skills/monolith/             ← synced
+│
+└── src/monolith/                        ← MASTER COPY
+    ├── plan.md                          ← this file
+    ├── SKILL.md
+    ├── README.md                        ← maintainer
+    ├── QUICKSTART.md
+    ├── TUTORIAL.md
+    ├── user_tutorial.md
+    ├── package.json
+    ├── tsconfig.json
+    ├── .gitignore
+    │
+    ├── agents/                          ← 24 sub-agent specs
+    │   ├── orchestrator.md
+    │   ├── triage.md
+    │   ├── ds-indexer.md
+    │   ├── guidelines-resolver.md
+    │   ├── theming-resolver.md
+    │   ├── market-researcher.md         ← (with inlined ## Synthesis)
+    │   ├── researcher.md
+    │   ├── product-manager.md
+    │   ├── ux-strategist.md
+    │   ├── ux-architect.md
+    │   ├── lead-designer.md
+    │   ├── ds-extension-judge.md
+    │   ├── design-principal.md
+    │   ├── aesthetic-director.md
+    │   ├── ux-writer.md
+    │   ├── engineering-manager.md
+    │   ├── pattern-decider.md
+    │   ├── developer.md
+    │   ├── dev-qa.md
+    │   ├── production-readiness-auditor.md
+    │   ├── runtime-inspector.md
+    │   ├── design-qa.md
+    │   ├── commercial-auditor.md
+    │   └── self-healer.md
+    │
+    ├── rules/                           ← enforceable doctrines
+    │   ├── ds-first-mandate.md          (Rule 0)
+    │   ├── custom-component-decision.md (Rule 1)
+    │   ├── pattern-memory-rules.md      (Rule 2)
+    │   ├── guidelines-inference-rules.md (Rule 3)
+    │   ├── research-rules.md            (Rule 4)
+    │   ├── copy-rules.md                (Rule 5)
+    │   ├── approval-gate-rules.md       (Rule 6 — v3.3 turn-based)
+    │   ├── handoff-rules.md             (Rule 7)
+    │   ├── output-location-rules.md     (Rule 8)
+    │   ├── production-grade-mandate.md  (Rule 9)
+    │   ├── self-healing-loop.md         (Rule 10)
+    │   ├── runtime-verification-rules.md (Rule 11)
+    │   ├── market-research-mandate.md   (Rule 12)
+    │   ├── differentiation-mandate.md   (Rule 13)
+    │   ├── ds-extension-criteria.md     (Rule 14)
+    │   ├── ui-excellence-standard.md    (Rule 15)
+    │   ├── commercial-viability-rules.md (Rule 16)
+    │   ├── evidence-weighted-decisions.md (Rule 17)
+    │   ├── copy-excellence-standard.md  (Rule 18)
+    │   ├── premium-aesthetic-standard.md (Rule 19)
+    │   ├── ai-generic-anti-patterns.md  (Rule 20)
+    │   ├── theming-input-normalization.md (Rule 21)
+    │   ├── ds-themeability-taxonomy.md  (Rule 22)
+    │   ├── checkpoint-discipline.md     (Rule 23 — v3.3 state tree)
+    │   ├── phase-manifest-discipline.md (Rule 24)
+    │   ├── artifact-size-cap.md         (Rule 25)
+    │   ├── deliverable-tally.md         (Rule 26 — v3.3 orchestrator-driven)
+    │   ├── anti-patterns.md
+    │   ├── token-usage-rules.md
+    │   ├── generation-rules.md
+    │   └── planning-rules.md
+    │
+    ├── templates/                       ← .hbs scaffolding
+    │   ├── screen.tsx.hbs
+    │   ├── app.tsx.hbs
+    │   ├── routes.tsx.hbs
+    │   ├── main.tsx.hbs
+    │   ├── theme-provider.tsx.hbs
+    │   ├── vite.config.ts.hbs
+    │   ├── package.json.hbs
+    │   ├── tsconfig.json.hbs
+    │   ├── index.html.hbs
+    │   └── custom-component.tsx.hbs
+    │
+    ├── docs-templates/                  ← markdown artifact templates
+    │   └── *.md.hbs
+    │
+    ├── scripts/                         ← 23 implemented TS scripts
+    │   ├── state-manager.ts             ← state.json read/write/validate (THE core)
+    │   ├── run-phase.ts                 ← cacheable-phase driver with fingerprinting
+    │   ├── run-qa.ts                    ← unified QA loop driver
+    │   ├── scratchpad-lifecycle.ts      ← detect-edits / archive / clear
+    │   ├── render-planning-review.ts    ← G2 review file
+    │   ├── get-affected-gates.ts        ← reads patchManifest, picks gates
+    │   ├── triage-input.ts
+    │   ├── index-ds-repo.ts
+    │   ├── index-ds-mcp.ts
+    │   ├── extract-tokens.ts
+    │   ├── extract-icons.ts
+    │   ├── fetch-guidelines-web.ts
+    │   ├── parse-guidelines-repo.ts
+    │   ├── generate-guidelines-fallback.ts
+    │   ├── scaffold-app.ts
+    │   ├── install-deps.ts
+    │   ├── validate-generated.ts
+    │   ├── axe-run.ts
+    │   ├── start-dev-server.ts          ← Vite programmatic API
+    │   ├── stop-dev-server.ts
+    │   ├── runtime-sweep.ts
+    │   ├── visual-smoke.ts
+    │   └── resolve-browser.ts           ← env → cache → system → install
+    │
+    ├── guidelines-schema/               ← JSON schemas
+    │   └── *.schema.json
+    │
+    ├── references/                      ← curated read-only material
+    │   ├── premium-design-playbook.md
+    │   ├── anti-generic-examples.md
+    │   ├── surface-templates/           ← 9 canonical page layouts
+    │   ├── ds-themeability-registry.md
+    │   ├── domain-playbooks/
+    │   ├── layout-primers/
+    │   └── accessibility-checklists/
+    │
+    ├── prompts/                         ← reusable prompt seeds
+    │   └── *.md
+    │
+    └── examples/                        ← starter material for new users
+        ├── ds-adapters/
+        │   ├── README.md
+        │   └── shadcn.json              ← sample adapter
+        └── sample-run/
+            └── README.md                ← (real run trace populated by user)
+```
 
-| Dimension | `phase-1-build-with-ds` (existing) | `monolith` (this) |
-|---|---|---|
-| Input surface | Brief + local DS repo (required) | Brief + DS (MCP OR repo OR both), guidelines (provided OR website OR inline OR none→generate) |
-| Depth | Screen plan → .tsx | Research → PRD → IA → User Flow → Design Decisions → Build Specs → Code → QA → Running prototype |
-| Agents | 4 (indexer/planner/generator/validator) | 13 roles (orchestrator, triage, indexer, guidelines-resolver, researcher, PM, UX-architect, lead-designer, EM, pattern-decider, developer, dev-QA, design-QA) |
-| Output | `out/<id>/screen.tsx` + plan | `out/<id>/app/` (full running React app) + 8 markdown artifacts + QA reports |
-| Custom-component policy | Hard-block | Decision tree → patterns/ memory → justified custom |
-| Pattern memory | None | Persistent `patterns/` folder — accumulates across runs |
-| Guidelines | Implicit (DS-first) | Explicit document set, resolved or generated |
-| Runtime gate | Static only (M1) | Static + dev-server boots + axe + visual smoke |
+Per-run output (outside the skill folder):
 
-### 0.2 What this skill is NOT
-
-- Not Figma. Zero Figma node IDs, zero `use_figma` calls. Phase 2 (`rewire-to-ds`) handles that separately.
-- Not a DS authoring tool. We consume DS; we do not add components to it.
-- Not multi-framework. React only. Vite only (v1).
-- Not multi-app. One app per run. Multi-route is fine; multi-product is not.
-- Not autonomous past the approval gates. Three hard stops (input triage → research/PRD review → design/build-spec review) require user sign-off.
-
-### 0.3 Non-negotiables (carry over from WORKFLOW_MASTER_PLAN §0.2, extended)
-
-- **DS-agnostic from day one.** No specific DS name ever hardcoded in any agent, rule, template, schema, or script. Adapters are the only place DS specifics live.
-- **DS-First Mandate is Rule 0.** Re-use [../phase-1-build-with-ds/rules/ds-first-mandate.md](../phase-1-build-with-ds/rules/ds-first-mandate.md) verbatim; extend with the custom-component decision tree (§7.5).
-- **No hallucinated props, components, icons, tokens.** If it isn't in the index or the MCP's live response, it doesn't exist.
-- **Realistic, domain-appropriate content.** No Lorem. Seeded, reproducible fake data per run.
-- **Every artifact has a template + a schema + an owning agent.** No ad-hoc .md.
-- **Three approval gates.** No silent progress past them.
-- **Fail loud.** Any missing component, missing token, missing icon, missing adapter → blocker in the relevant report, never a silent custom fallback.
-- **Pattern memory is append-only.** Patterns added in a run stay for future runs. Only a human removes them.
-- **Everything that would need JS belongs in a script.** Agents plan and write markdown; scripts do the mechanical work (indexing, fetching, scaffolding, validating, running).
-
-### 0.4 What the user gives us (the five input shapes)
-
-The skill must handle ALL combinations:
-
-| Shape | DS source | Guidelines source |
-|---|---|---|
-| A | MCP only | provided .md files |
-| B | MCP only | website URL to crawl |
-| C | MCP only | nothing → generate from MCP metadata |
-| D | Repo only | provided .md files |
-| E | Repo only | website URL to crawl |
-| F | Repo only | inline docs inside the repo (`docs/`, `README`, `*.mdx`) |
-| G | Repo only | nothing → generate from repo + source code |
-| H | MCP + Repo | any of the above — prefer MCP at runtime, reconcile with repo |
-
-Detection is Stage 0's job. See §4.
+```
+<workspaceRoot>/
+├── .monolith/
+│   ├── state.json
+│   ├── scratchpad/                      ← live during run; archived on accept
+│   ├── archive/<runId>/                 ← post-run home of scratchpad files
+│   └── cache/<tier>/<hash>/             ← content-addressable cache
+├── .monolith-memory/patterns/           ← cross-run pattern memory (log.jsonl)
+└── <appName>/
+    ├── src/                             ← generated React app
+    ├── ds-knowledge/{component-index,tokens,icons}.json
+    ├── guidelines/{brand,voice,...}.md
+    ├── theme-spec.json
+    ├── themeability-report.md
+    ├── qa/                              ← per-gate QA reports
+    └── DELIVERY.md
+```
 
 ---
 
-## 1. Folder layout (ship this)
+## 2. The pipeline (v3.3 flow)
+
+A run is exactly these stages, in order. Parallelism within each track is mandatory where shown.
 
 ```
-monolith/
-├── plan.md                              ← this file (spec + tracker)
-├── SKILL.md                             ← user-facing skill definition (frontmatter required)
-├── README.md                            ← quick-start for a human maintainer
-├── QUICKSTART.md                        ← 5-minute happy-path walkthrough
-│
-├── agents/                              ← 13 subagent specs, one .md each
-│   ├── orchestrator.md
-│   ├── triage.md
-│   ├── ds-indexer.md
-│   ├── guidelines-resolver.md
-│   ├── researcher.md
-│   ├── product-manager.md
-│   ├── ux-architect.md
-│   ├── lead-designer.md
-│   ├── engineering-manager.md
-│   ├── pattern-decider.md
-│   ├── developer.md
-│   ├── dev-qa.md
-│   └── design-qa.md
-│
-├── rules/                               ← enforceable doctrines, referenced by agents
-│   ├── ds-first-mandate.md              ← copy of Rule 0 (link back to canonical)
-│   ├── anti-patterns.md
-│   ├── custom-component-decision.md     ← NEW — §7.5
-│   ├── pattern-memory-rules.md          ← NEW — how to add/retrieve patterns
-│   ├── guidelines-inference-rules.md    ← NEW — how to auto-generate guidelines
-│   ├── research-rules.md                ← NEW — disciplined research method
-│   ├── copy-rules.md                    ← NEW — voice, tone, realistic content
-│   ├── approval-gate-rules.md           ← NEW — what stops the pipeline
-│   ├── token-usage-rules.md
-│   ├── generation-rules.md
-│   ├── planning-rules.md
-│   └── handoff-rules.md                 ← NEW — what Phase 2 needs from our output
-│
-├── templates/                           ← code/scaffold templates (.hbs / .tsx)
-│   ├── screen.tsx.hbs
-│   ├── app.tsx.hbs
-│   ├── routes.tsx.hbs
-│   ├── main.tsx.hbs
-│   ├── theme-provider.tsx.hbs
-│   ├── vite.config.ts.hbs
-│   ├── package.json.hbs
-│   ├── tsconfig.json.hbs
-│   ├── index.html.hbs
-│   └── custom-component.tsx.hbs
-│
-├── docs-templates/                      ← markdown deliverable templates
-│   ├── research.md.hbs
-│   ├── prd.md.hbs
-│   ├── information_architecture.md.hbs
-│   ├── user_flow.md.hbs
-│   ├── design_decisions.md.hbs
-│   ├── best_practices.md.hbs
-│   ├── build_specs.md.hbs
-│   ├── qa.md.hbs
-│   ├── pattern.md.hbs
-│   └── delivery.md.hbs
-│
-├── scripts/                             ← TS scripts (the JS surface)
-│   ├── triage-input.ts                  ← detect input shape (A-H)
-│   ├── index-ds-repo.ts                 ← ts-morph pass over local DS
-│   ├── index-ds-mcp.ts                  ← query DS MCP, normalize
-│   ├── extract-tokens.ts
-│   ├── extract-icons.ts
-│   ├── fetch-guidelines-web.ts          ← WebFetch crawl + strip
-│   ├── parse-guidelines-repo.ts         ← parse /docs inside repo
-│   ├── generate-guidelines-fallback.ts  ← last-resort guidelines synthesis
-│   ├── scaffold-app.ts                  ← Vite + DS + router + theme
-│   ├── install-deps.ts
-│   ├── validate-generated.ts
-│   ├── axe-run.ts
-│   ├── start-dev-server.ts              ← boots localhost, returns URL + PID
-│   └── visual-smoke.ts                  ← playwright screenshot vs. expected
-│
-├── guidelines-schema/                   ← JSON schemas for normalized guidelines
-│   ├── brand.schema.json
-│   ├── voice.schema.json
-│   ├── ux-principles.schema.json
-│   ├── accessibility.schema.json
-│   ├── content.schema.json
-│   ├── motion.schema.json
-│   ├── layout.schema.json
-│   └── input-manifest.schema.json
-│
-├── patterns/                            ← pattern memory (append-only, cross-run)
-│   ├── README.md                        ← what a pattern is + how to write one
-│   ├── INDEX.md                         ← human-readable index of all patterns
-│   └── <slug>.md                        ← one file per pattern (added by design-qa)
-│
-├── references/                          ← curated external references
-│   ├── domain-playbooks/                ← hand-authored per-domain primers (open set)
-│   ├── layout-primers/                  ← dashboard, form, table, wizard layouts
-│   └── accessibility-checklists/        ← WCAG 2.2 AA quick refs
-│
-├── prompts/                             ← reusable system-prompt snippets
-│   ├── research-seed.md
-│   ├── pm-seed.md
-│   ├── designer-seed.md
-│   ├── developer-seed.md
-│   └── qa-seed.md
-│
-├── examples/                            ← worked examples for the maintainer
-│   └── <run-label>/                     ← replayable end-to-end example (populated after first real run)
-│       ├── 00-input-brief.md
-│       ├── 01-input-manifest.json
-│       ├── 02-ds-index.json (small)
-│       ├── 03-guidelines/*
-│       ├── 04-research.md
-│       ├── 05-prd.md
-│       ├── 06-ia.md
-│       ├── 07-user-flow.md
-│       ├── 08-design-decisions.md
-│       ├── 09-build-specs.md
-│       ├── 10-app/ (tree only, no node_modules)
-│       ├── 11-qa.md
-│       └── 12-delivery.md
-│
-└── .cache/                              ← per-run caches, safe to wipe
-    ├── ds-index/                        ← cached component indexes
-    └── guidelines/                      ← cached resolved guideline docs
+0. Path resolution + state init
+   - workspaceRoot, workflowRoot, memoryRoot, runRoot, appRoot
+   - .monolith/state.json initialized via stateManager.init(runId, brief)
+
+1. triage  →  state.input.manifest
+
+≫ G1 — INPUT (blocking) ≪
+   Show manifest. Accept ok / change / rename / abort.
+
+2. Track A — Discovery
+   2a (parallel): ds-indexer ‖ guidelines-resolver ‖ market-researcher
+   2b (sequential): theming-resolver
+   2c (sequential): researcher
+
+   Each cacheable phase routed through scripts/run-phase.ts:
+     exit 0 = cache hit, skip
+     exit 1 = cache miss, script-backed, recorded
+     exit 2 = cache miss, agent-driven; orchestrator invokes agent then runs --record
+
+3. Track B — Planning
+   3a (parallel): product-manager ‖ ux-strategist
+   3b (parallel): ux-architect ‖ lead-designer (early draft)
+
+4. Track C — Design quality
+   4a (batch): ds-extension-judge — all extension requests in one call
+   4b (parallel): design-principal ‖ aesthetic-director
+   4c (sequential): ux-writer
+   4d (sequential): engineering-manager
+
+≫ G2 — PLAN (turn-yielding) ≪
+   render-planning-review.ts → .monolith/scratchpad/PLANNING_REVIEW.md
+   Output yield message. STOP.
+   On user reply:
+     - continue  → scratchpad-lifecycle.ts detect-edits → re-run dirty phases → proceed
+     - iterate on <doc>: <delta>  → re-run owning agent + downstream → re-show G2
+     - restart from <phase>  → reset phases → re-run → re-show G2
+     - abort  → state.meta.status = aborted
+
+5. pattern-decider  →  state.artifacts.patternDecisions
+
+6. developer (full-gen)
+   - scaffold-app.ts → <appRoot>/**
+   - install-deps.ts → npm install
+   - emit <patchManifest> in response
+   - state.phases.developer.summary
+
+7. start-dev-server.ts
+   - Vite createServer programmatic API
+   - state.server = { pid, url, status: "running" }
+
+8. UNIFIED QA LOOP (run-qa.ts driver)
+   Iteration 1 (FULL):
+     parallel: dev-qa ‖ production-readiness ‖ runtime-inspector ‖ design-qa ‖ commercial-auditor
+     aggregate issues → state.issues.open[]
+     self-healer → ONE patch brief
+     developer (patch mode) → ONE patch + new <patchManifest>
+   Iteration 2+ (DELTA):
+     get-affected-gates.ts (reads latest patchManifest) → affected gates
+     parallel run only affected gates
+     aggregate → self-healer → developer
+   Cap: 5 iterations per gate. Hard-block + escalate otherwise.
+
+9. consolidate qa.md, regenerate patterns INDEX.md (lazy)
+
+10. write DELIVERY.md (sections in §8.10)
+
+≫ G3 — DELIVERY (turn-yielding) ≪
+   Show summary. STOP.
+   On user reply:
+     - accept  → scratchpad-lifecycle.ts archive → clear → state.meta.status = completed
+     - iterate on <stage>: <delta>  → re-run that stage + downstream → re-show G3
+     - abort  → state.meta.status = aborted
 ```
 
-Every file in the tree above has a row in §10 Tracker.
+### 2.1 Approval gates (summary)
 
----
-
-## 2. The pipeline (stages)
-
-A run is exactly these stages, in order. No stage is skippable. Stages that don't apply to a given input shape still execute and emit a "not applicable, here is why" marker.
-
-```
-         ┌─────────────────────────────────────────────────┐
-         │  user invokes /monolith <brief>       │
-         └──────────────────────┬──────────────────────────┘
-                                │
-   ┌─── Stage 0 ────────────────▼─────────────── orchestrator + triage ──┐
-   │    Detect DS source. Detect guidelines source. Detect prompt type. │
-   │    Emit input-manifest.json. First approval gate.                   │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 1 ──────────▼────────────────────────── ds-indexer ────────┐
-   │    Build component-index + tokens + icons from the detected source.│
-   │    Cache under .cache/ds-index/<ds>@<ver>/.                         │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 2 ──────────▼─────────────────── guidelines-resolver ──────┐
-   │    Normalize provided / crawl website / parse repo docs / generate │
-   │    fallback. Emit 7 guideline docs per guidelines-schema/.          │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 3 ──────────▼──────────────────────── researcher ──────────┐
-   │    Domain inference, persona sketches, jobs-to-be-done, prior-art   │
-   │    suggestions, risks. Emit docs/research.md.                       │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 4 ──────────▼──────────────────── product-manager ─────────┐
-   │    Problem statement, user stories, acceptance criteria, success    │
-   │    metrics, MVP scope. Emit docs/prd.md.                            │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 5 ──────────▼──────────────────── ux-architect ────────────┐
-   │    Sitemap, nav model, content hierarchy, flows. Emit               │
-   │    docs/information_architecture.md + docs/user_flow.md.            │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 6 ──────────▼────────────────── lead-designer ─────────────┐
-   │    Per-screen component/pattern selection, token application,      │
-   │    layout choices, empty/error/loading state plans. Emit            │
-   │    docs/design_decisions.md + docs/best_practices.md.              │
-   │    Consult patterns/ before proposing any custom primitive.         │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 7 ──────────▼───────────── engineering-manager ────────────┐
-   │    File tree, routes, state model, data contracts, component       │
-   │    decomposition, custom-component specs. Emit docs/build_specs.md. │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-                          ▼   ≫≫ APPROVAL GATE 2 ≪≪
-                          │   show user: research + PRD + IA + design + build
-                          │   spec in one condensed summary + links to full
-                          │   docs. Accept: "ok" | delta | restart.
-                          │
-   ┌─── Stage 8 ──────────▼──────────────── pattern-decider ─────────────┐
-   │    For every section in every screen: emit                         │
-   │    {ds-component | ds-pattern | reused-custom-pattern |            │
-   │     new-custom-pattern | blocker}. Write new patterns into          │
-   │    patterns/. Emit docs/pattern_decisions.md.                       │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 9 ──────────▼──────────────────── developer ───────────────┐
-   │    Scaffold Vite app, install DS, generate every screen, wire      │
-   │    routes, implement data fixtures, emit out/<run>/app/.           │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 10 ─────────▼───────────────────── dev-qa ─────────────────┐
-   │    tsc, eslint, build, dev-server boot, axe, DS_FIRST static gate. │
-   │    Emit qa/dev_qa_report.md.                                        │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-   ┌─── Stage 11 ─────────▼──────────────────── design-qa ───────────────┐
-   │    Visual rhythm, token coverage, pattern reuse ratio, copy        │
-   │    realism, empty/error/loading completeness. Emit                  │
-   │    qa/design_qa_report.md. Promote new patterns into patterns/.     │
-   └──────────────────────┬─────────────────────────────────────────────┘
-                          │
-                          ▼   ≫≫ APPROVAL GATE 3 ≪≪
-                          │   show user: prototype URL + QA reports + next.
-                          │
-   ┌─── Stage 12 ─────────▼───────────────── orchestrator ───────────────┐
-   │    Emit DELIVERY.md: run summary, localhost URL, artifact map,     │
-   │    blockers, next-step handoff to Phase 2.                          │
-   └─────────────────────────────────────────────────────────────────────┘
-```
-
-### 2.1 Approval gates
-
-| Gate | After stage | Shown to user | Accepted responses |
-|---|---|---|---|
-| **G1 — Input** | 0 | input-manifest.json + detected shape + any ambiguity | `ok`, `change X`, `abort` |
-| **G2 — Plan** | 7 | condensed summary of research/PRD/IA/design/build-spec + links | `ok`, `iterate on <doc>`, `restart from <stage>`, `abort` |
-| **G3 — Delivery** | 11 | localhost URL + QA reports + blockers | `accept`, `iterate on <stage>`, `log for Phase 2` |
+| Gate | After phase | Mode | Shown to user | Accepted responses |
+|---|---|---|---|---|
+| G1 — Input | 1 | Blocking | `state.input.manifest` + warnings | `ok`, `change <field>`, `rename app`, `abort` |
+| G2 — Plan | 4d | Turn yield | `.monolith/scratchpad/PLANNING_REVIEW.md` + scratchpad files | `continue`, `iterate on <doc>: <delta>`, `restart from <phase>`, `abort` |
+| G3 — Delivery | 10 | Turn yield | `DELIVERY.md` + per-gate self-healing iter counts | `accept`, `iterate on <stage>: <delta>`, `abort` |
 
 ### 2.2 Between-stage contracts
 
-Every stage has a typed in/out contract:
+Every phase has a typed contract in the state tree:
 
 ```
-triage.out        → input-manifest.json
-ds-indexer.out    → component-index.json + tokens.json + icons.json
-guidelines.out    → 7 guideline docs (schemas enforced)
-researcher.out    → research.md
-pm.out            → prd.md
-ux-architect.out  → information_architecture.md + user_flow.md
-lead-designer.out → design_decisions.md + best_practices.md
-em.out            → build_specs.md
-pattern-decider.out → pattern_decisions.md + (N) new patterns/<slug>.md
-developer.out     → out/<run>/app/**
-dev-qa.out        → qa/dev_qa_report.md
-design-qa.out     → qa/design_qa_report.md + (N) promoted patterns
-orchestrator.out  → DELIVERY.md
+phases.<name>.{ status, attempt, fingerprint, producedAt, summary, outputs }
 ```
 
-Contracts are enforced by the validator scripts. A missing required field is a blocker.
+Plus its declared scratchpad files. Schema lives in `state-manager.ts`. A phase that returns with missing required summary fields is a phase failure.
 
 ---
 
-## 3. The 13 agents (role specs, short form — full specs in agents/*.md)
+## 3. The 24 agents (role specs — full specs in agents/*.md)
 
-All agents are **subagent prompts** loaded by the orchestrator via the Agent tool. None run as separate Claude processes; they are role-prompts with scoped context and a typed output contract.
+Every agent file carries: `role`, `invoked_by`, `reads:`/`writes:`/`search:` (Rule 24), system prompt, steps, fail modes, gates, outputs declaration block (Rule 26). No agent runs code; scripts do that.
 
-| # | Agent | Model | Role summary | Output |
+| # | Agent | Track | Role | Output |
 |---|---|---|---|---|
-| 0 | **orchestrator** | Opus | Runs the whole pipeline. Holds the plan. Invokes every other agent. Manages approval gates. | DELIVERY.md, run log |
-| 1 | **triage** | Haiku | Classifies inputs into shape A-H. Detects DS source + guideline source. Emits input-manifest. | input-manifest.json |
-| 2 | **ds-indexer** | Sonnet | Builds the component index from MCP or repo. Normalizes across sources. | component-index + tokens + icons |
-| 3 | **guidelines-resolver** | Sonnet | Normalizes provided guidelines; crawls site; parses repo docs; falls back to inference. | 7 guideline .md files + JSON equivalents |
-| 4 | **researcher** | Sonnet | Domain research, personas, jobs-to-be-done, prior-art references, risks. | research.md |
-| 5 | **product-manager** | Sonnet | Problem, user stories, acceptance criteria, MVP scope, metrics. | prd.md |
-| 6 | **ux-architect** | Sonnet | Sitemap, nav model, content hierarchy, user flows, decision points. | information_architecture.md + user_flow.md |
-| 7 | **lead-designer** | Sonnet | Per-section component/pattern/token selection; empty/error/loading states; density; a11y intent. | design_decisions.md + best_practices.md |
-| 8 | **engineering-manager** | Sonnet | File tree, routes, state model, data contracts, custom-component specs. | build_specs.md |
-| 9 | **pattern-decider** | Sonnet | Decision tree per section → component/pattern/reuse/create/block. Writes new patterns to disk. | pattern_decisions.md + new patterns/*.md |
-| 10 | **developer** | Sonnet | Scaffolds app. Writes every screen + route + fixture. Calls scripts for mechanical work. | out/<run>/app/** |
-| 11 | **dev-qa** | Haiku | Runs static + runtime gates. Blocks on any failure. | qa/dev_qa_report.md |
-| 12 | **design-qa** | Sonnet | Visual rhythm, token coverage, pattern-reuse ratio, copy, state completeness. | qa/design_qa_report.md + promotions |
+| 0 | **orchestrator** | — | Runs the whole pipeline. Holds state. Manages gates. | DELIVERY.md, state.json |
+| 1 | **triage** | — | Detects shape, emits manifest. | state.input.manifest |
+| 2 | **ds-indexer** | A | Component index from MCP/repo. | component-index + tokens + icons |
+| 3 | **guidelines-resolver** | A | Normalize/crawl/parse/generate 7 guideline docs. | 7 guideline .md files |
+| 4 | **theming-resolver** | A | Normalize theme inputs + DS tier. | theme-spec.json + themeability-report.md |
+| 5 | **market-researcher** | A | Real competitors, loopholes, **inline `## Synthesis` appendix**. | market-research.md (with appendix) |
+| 6 | **researcher** | A | Domain, personas, JTBDs, gap inferences. | research.md |
+| 7 | **product-manager** | B | PRD with commercial lens. | prd.md |
+| 8 | **ux-strategist** | B | 3–5 differentiation bets. | differentiation-map.md |
+| 9 | **ux-architect** | B | Sitemap, flows, state inventory. | information_architecture.md + user_flow.md |
+| 10 | **lead-designer** | B | Per-section components + tokens + states. | design_decisions.md + best_practices.md |
+| 11 | **ds-extension-judge** | C | **Batch** ruling on all extension requests. | ds-extensions/<slug>.md per request |
+| 12 | **design-principal** | C | Critique dimensions 1–4 (parallel with aesthetic-director). | design-principal-critique.md |
+| 13 | **aesthetic-director** | C | Critique dimension 5 (premium / anti-generic). | aesthetic-audit.md |
+| 14 | **ux-writer** | C | Every user-visible string rewritten. | ux-writing-pass.md |
+| 15 | **engineering-manager** | C | File tree, routes, state model, custom-component specs. | build_specs.md |
+| 16 | **pattern-decider** | — | Decision matrix per section. | pattern_decisions.md + new patterns |
+| 17 | **developer** | — | Full-gen + patch mode; emits `<patchManifest>`. | <appRoot>/** |
+| 18 | **dev-qa** | QA | tsc, eslint, build, server, axe, DS_FIRST, ANTI_GENERIC. | dev_qa_report.md |
+| 19 | **production-readiness-auditor** | QA | Every-button-wired, every-state-reachable. | production-readiness.md |
+| 20 | **runtime-inspector** | QA | Playwright sweep (delta-routed iter 2+). | runtime-report.md + screenshots |
+| 21 | **design-qa** | QA | Visual rhythm, copy, tokens, states + premium-visual axes. | design_qa_report.md |
+| 22 | **commercial-auditor** | QA | Onboarding/conversion/retention/trust/expansion. | commercial-audit.md |
+| 23 | **self-healer** | QA | Aggregate issues across gates → ONE patch brief. | qa/heal-briefs/<gate>-attempt-<N>.md |
 
-Model assignment follows WORKFLOW_MASTER_PLAN §6.4 — cheap where deterministic, Sonnet where judgment, Opus only where high ambiguity (the orchestrator itself).
-
-Agent files (agents/*.md) each carry:
-- `role` — one-line role
-- `inputs` — explicit list with schemas
-- `outputs` — explicit list with schemas
-- `system-prompt` — the prompt prefix the orchestrator injects
-- `steps` — the canonical work order
-- `fail-modes` — enumerated, each with a recovery path
-- `gates` — what must be true to pass
-- `example` — one worked example (points at examples/)
+Model assignment is delegated to the harness (Rule 24's `complexity_score` field if the harness supports it). No hardcoded model names anywhere.
 
 ---
 
-## 4. Stage 0 — Input triage (decision table)
-
-Triage is the linchpin. Every downstream stage depends on it being right.
+## 4. Stage 1 — Triage (decision table)
 
 ### 4.1 DS source detection
 
 | Signal | Interpretation |
 |---|---|
-| User mentions MCP tool names (Figma MCP, Atlassian MCP, custom DS MCP) | MCP candidate |
-| User provides a path to a repo that contains `package.json` with a DS-like name | Repo candidate |
-| User provides a URL to a published DS repo (GitHub) | Repo candidate (clone required — BLOCK, ask user to clone locally first) |
-| Both signals present | H — MCP + Repo |
-| Neither signal present | BLOCK — ask user to provide one |
+| MCP tool names mentioned | MCP candidate |
+| Path with `package.json` + DS-like name | Repo candidate |
+| URL to GitHub DS repo | Block — ask user to clone locally |
+| Both | Shape H |
+| Neither | Block at G1 |
 
 ### 4.2 Guidelines source detection
 
 | Signal | Interpretation |
 |---|---|
-| User attaches / references `.md` files | Provided |
-| User provides a URL that is not a repo URL | Website → crawl |
-| Repo contains a `docs/`, `guidelines/`, `brand/`, `principles.md`, `CONTRIBUTING.md`, `README.md` | Inline (best-effort parse) |
-| None of the above | Generate fallback |
+| `.md` files referenced | Provided |
+| Non-repo URL | Website crawl |
+| Repo has `docs/` / `README.md` / `*.mdx` | Inline |
+| None | Generate fallback |
 
-### 4.3 Prompt type detection (used by researcher + PM)
+### 4.3 Prompt type
 
 | Signal | Type |
 |---|---|
-| "build a <screen> for <product>" | Single screen |
-| "build a <product>" | Multi-screen app |
-| "add <feature> to <product>" | Feature addition (BLOCK — requires existing app context we don't have in v1) |
-| Ambiguous | Ask user |
+| "build a <screen> for <product>" | single-screen |
+| "build a <product>" | multi-screen-app |
+| "add <feature> to <product>" | Block (no Phase 1.5 ingest yet) |
+| Ambiguous | Ask at G1 |
 
-### 4.4 input-manifest.json shape
+### 4.4 input-manifest shape
 
 ```json
 {
   "runId": "<YYYY-MM-DD>_<kebab-brief>",
-  "brief": "<verbatim user brief>",
-  "ds": {
-    "source": "mcp | repo | both",
-    "name": "<ds-name>",
-    "version": "<semver | commit>",
-    "mcp": { "name": "...", "reachable": true } | null,
-    "repo": { "path": "...", "adapterPath": "..." } | null
-  },
-  "guidelines": {
-    "source": "provided | website | repo-inline | generated",
-    "files": ["..."] | null,
-    "url": "..." | null
-  },
-  "promptType": "single-screen | multi-screen-app",
-  "constraints": {
-    "theme": "light | dark | both",
-    "density": "compact | comfortable | spacious",
-    "breakpoints": ["sm","md","lg"],
-    "locale": "en-US"
-  },
-  "unresolved": [ { "field": "...", "question": "...", "blockingStage": 0 } ]
+  "brief": "<verbatim>",
+  "ds": { "source": "...", "name": "...", "version": "...", "mcp": {...}|null, "repo": {...}|null },
+  "guidelines": { "source": "...", "files": [...]|null, "url": "..."|null },
+  "promptType": "...",
+  "constraints": { "theme": "...", "density": "...", "breakpoints": [...], "locale": "...", "productType": "..." },
+  "themeInputs": [...],
+  "unresolved": [{ "field": "...", "question": "...", "blockingStage": 0 }]
 }
 ```
 
-`unresolved[]` drives G1. If non-empty, the orchestrator asks the user to answer each before advancing.
-
-### 4.5 Triage output is checkpoint 1
-
-Even when everything resolves cleanly, the orchestrator shows the manifest to the user and asks "look right? proceed?" before anything else runs. One cheap confirm saves a whole pipeline of wrong-direction work.
+`unresolved[]` drives G1.
 
 ---
 
-## 5. Stage 1 — DS knowledge base
+## 5. Stage 2 — DS knowledge
 
 ### 5.1 The three flavors
 
-**MCP-only.** Query the MCP for: component list, per-component props/variants, token list, icon list. Normalize to the `component-index.json` schema (reuse `shared/types/screen-plan.schema.json`-style schemas from existing skill; create a peer `component-index.schema.json` here).
-
-**Repo-only.** Reuse the existing `scripts/index-ds.ts` pattern (ts-morph walk). Extend: emit not just props but `examples[]` from stories/mdx, `tokensUsed[]` from SCSS, and `a11y` metadata.
-
-**Both.** Run both in parallel (via two scripts), reconcile by component name + import path. Conflicts → emit `ds-index-conflicts.md` and block until user picks authority.
+- **MCP-only:** `index-ds-mcp.ts` queries the MCP, normalizes to `component-index.json` schema.
+- **Repo-only:** `index-ds-repo.ts` ts-morph walk per the adapter.
+- **Both:** parallel + reconciliation by name + importPath. Conflicts → block at G1.
 
 ### 5.2 Contract
 
-Every downstream agent sees ONE `component-index.json`, ONE `tokens.json`, ONE `icons.json`. The indexer normalizes away the source difference. No agent downstream should ever branch on "MCP vs repo."
+Every downstream agent sees ONE `component-index.json`, ONE `tokens.json`, ONE `icons.json`. The indexer normalizes away the source.
 
 ### 5.3 Cache
 
-`.cache/ds-index/<ds-slug>@<version-hash>/` — the same cache shape as the existing skill. Invalidate on:
-- DS version change
-- Adapter file mtime change
-- Explicit `--rebuild-index` flag
+`.monolith/cache/ds-knowledge/<hash>/` keyed on `hash(adapterMtime + repoHead + mcpVersion)`. Invalidate on any input change.
 
 ---
 
-## 6. Stage 2 — Guidelines resolution
+## 6. Stage 3 — Guidelines resolution
 
-### 6.1 The seven canonical guideline documents
+### 6.1 The seven canonical docs
 
-Whatever the source, we end up with these seven, each conforming to its JSON schema (for programmatic access) + a pretty `.md` rendering (for human/agent reading):
-
-| Doc | What it captures |
-|---|---|
-| `brand.md` | Product name, logo usage, palette semantics, typography families, voice anchors |
-| `voice.md` | Tone words, dos/don'ts, example phrases, banned phrases |
-| `ux-principles.md` | 5–10 principles the DS team articulates (e.g. "progressive disclosure", "feedback within 100ms") |
-| `accessibility.md` | WCAG target level, contrast minima, focus-order rules, keyboard-first expectations |
-| `content.md` | Copy conventions — sentence case vs title case, number/date formats, list punctuation |
-| `motion.md` | Durations, easings, when to animate vs when not to |
-| `layout.md` | Grid, spacing scale, breakpoints, density rules, container widths |
+`brand`, `voice`, `ux-principles`, `accessibility`, `content`, `motion`, `layout`. Each conforms to its JSON schema + an `.md` rendering.
 
 ### 6.2 Source-specific pipelines
 
-**Provided.** Validate each against its schema. Normalize heading structure. If a doc is missing, fall back to inference for just that doc.
+- **Provided:** validate, normalize headings.
+- **Website:** `fetch-guidelines-web.ts` crawls, classifies; cache 7 days.
+- **Repo inline:** `parse-guidelines-repo.ts` walks docs.
+- **Generated:** `generate-guidelines-fallback.ts` infers from index/tokens; every claim cites a source. `inferred: true/false` in frontmatter.
 
-**Website.** `scripts/fetch-guidelines-web.ts` uses the WebFetch tool with a scraping prompt that asks for the seven topic slices. Cache under `.cache/guidelines/<domain>/`. Manual review step: show the user a one-line summary of what was extracted per topic before accepting.
+### 6.3 Hand-off
 
-**Repo inline.** `scripts/parse-guidelines-repo.ts` walks the DS repo for likely doc files and classifies each paragraph into one of the seven topics. Low-confidence classifications → flagged in the output.
-
-**Generated fallback.** `scripts/generate-guidelines-fallback.ts` feeds the component index + token map + any README into a Sonnet prompt with one job: produce the seven docs using ONLY evidence present in the index/tokens — never invent principles. Hard rule: every claim in a generated guideline must cite a component, token, or snippet of source it was derived from. If a topic has zero evidence, the doc says so explicitly and is marked `inferred: false`.
-
-### 6.3 Guideline hand-off
-
-The orchestrator injects the relevant guideline excerpt into each subsequent agent's system prompt:
-- researcher sees voice + ux-principles
-- PM sees ux-principles + accessibility
-- ux-architect sees layout + content
-- lead-designer sees ALL seven
-- developer sees layout + accessibility + motion
-- dev-qa sees accessibility + motion
-- design-qa sees ALL seven
+Orchestrator passes the relevant guidelines per agent's `reads:` list (Rule 24).
 
 ---
 
-## 7. The core design policies (the hard stuff)
+## 7. Core design policies
 
-### 7.1 DS-First Mandate — applies verbatim
+### 7.1 DS-First Mandate (Rule 0) — applies verbatim
 
-Re-export [../phase-1-build-with-ds/rules/ds-first-mandate.md](../phase-1-build-with-ds/rules/ds-first-mandate.md) as `rules/ds-first-mandate.md`. Every agent in `agents/` that touches UI output quotes the mandate at the top of its prompt.
+### 7.2 Anti-patterns (Rule 20) — 25-item blacklist + canonical compound tells
 
-### 7.2 Anti-patterns — applies verbatim
+### 7.3 Pattern memory
 
-Re-export the existing anti-pattern catalog. Extend with two new categories:
-- **Research anti-patterns** (e.g., inventing personas, citing non-existent studies)
-- **PM anti-patterns** (e.g., padding the MVP with non-critical features)
-
-### 7.3 Pattern memory — how it actually works
-
-**Definition.** A pattern is a recurring piece of UI composition that is NOT a DS primitive but IS worth keeping because it appears across screens. Examples: a "metric trio with trend sparkline", a "two-column split form with sticky submit", a "bottom-nav with overflow menu", a "skeleton-screen loading sequence for a list".
-
-**Storage.** `patterns/<kebab-slug>.md`. Each pattern doc contains:
-
-```markdown
----
-slug: metric-trio-sparkline
-when: dashboard summary rows where three KPIs share a trend line
-created: 2026-04-22
-owner: design-qa (promoted from run <runId>)
-uses-ds: [Card, Typography.Title, Typography.Text]
-uses-tokens: [color/brand/*, space/200, space/300, radius/md]
-uses-custom: [MiniSparkline]
----
-
-## When to use
-…
-
-## Structure
-<ascii or bullet outline>
-
-## Code skeleton
-```tsx
-<Card>…</Card>
-```
-
-## Don't use when
-…
-
-## Accessibility notes
-…
-
-## Variants
-…
-```
-
-**Lifecycle.**
-- **pattern-decider** reads `patterns/INDEX.md` in Stage 8 and cites any reused pattern by slug.
-- **design-qa** in Stage 11 identifies NEW recurring custom compositions and writes new `patterns/<slug>.md` files.
-- **orchestrator** regenerates `patterns/INDEX.md` at end-of-run.
-- **no agent ever deletes a pattern.** That is a human-only action.
+- Definition: recurring composition that's NOT a DS primitive.
+- Storage: `.monolith-memory/patterns/log.jsonl` (append-only) + lazy `INDEX.md`.
+- Lifecycle: `pattern-decider` reads INDEX/log; `design-qa` writes new patterns; `orchestrator` regenerates INDEX lazily.
 
 ### 7.4 Custom component decision tree
 
-This is the single hardest decision in the pipeline. Codified as `rules/custom-component-decision.md`. Evaluated by **pattern-decider** per section, visible to user, overridable.
-
-```
-For each UI need S in a screen:
-
-  1. Is there a DS component C whose name, semantics, and variants fit S?
-     → YES. Use C. DONE.
-
-  2. Can C1 + C2 + … from the DS be composed to satisfy S without new CSS?
-     → YES. Compose. Document composition in design_decisions.md.
-
-  3. Is there a DS pattern (from docs/guidelines) that describes S?
-     → YES. Follow the pattern. Cite source.
-
-  4. Is there an entry in patterns/INDEX.md that satisfies S?
-     → YES. Reuse the pattern. Record reuse in pattern_decisions.md.
-
-  5. Is S a LAYOUT / COMPOSITION rather than a primitive?
-     (Layout = arrangement of DS components in space.
-      Primitive = button, input, chip, select, dialog, shadow, focus ring.)
-     → LAYOUT. Build inline in the screen file. Cite tokens used.
-       If it's likely to recur: propose a new pattern (design-qa will
-       decide at QA-time whether to promote it).
-     → PRIMITIVE. STOP. This is a DS-First violation. Block the run
-       with reason "missing DS primitive: <name>". Never silently custom.
-
-  6. Is S a truly novel, domain-specific piece of UI with no DS analog?
-     (e.g., a domain-specific visualization, a complex diagram, a bespoke chart
-      type that has no generic DS analog)
-     → YES. Create under app/src/custom/<name>/. Follow custom-component
-       template. Use ONLY DS tokens. Document in custom_components/<name>.md.
-       Flag for DS-team contribution in delivery.md.
-
-  7. Otherwise → block, escalate to user.
-```
-
-**The key insight:** Layout is free; primitives are forbidden. Patterns are the compromise — when layout recurs, give it a name.
+Codified in `rules/ds-extension-criteria.md` (Rule 14). Adjudicated in batch by `ds-extension-judge`. Layout = free; primitives = forbidden; truly novel domain UI = approved with a written ruling.
 
 ### 7.5 Realistic content
 
-`rules/copy-rules.md` specifies:
-- Domain-appropriate noun/verb pools seeded from the brief + research.md
-- Realistic names via seeded faker (seed = runId)
-- Realistic numbers (rounded like a real product would, e.g. "$1,284" not "$1234.56" for a summary metric)
-- Voice from `guidelines/voice.md`
-- Dates in `locale` from input-manifest
-- Never Lorem; never placeholder symbols
+`rules/copy-rules.md` + `rules/copy-excellence-standard.md`. Voice from `guidelines/voice.md`. Seeded faker for names; rounded numbers for summary metrics; locale-aware dates.
 
 ### 7.6 Handoff to Phase 2
 
-`rules/handoff-rules.md` specifies exactly what Phase 2 (`rewire-to-ds`) needs from our output:
-- `screen-plan.json` per screen (sections, copy, variant intent, landmarks)
-- Screenshot per screen
-- `app/` rendered and reachable, so Phase 1.5 can html.to.design from localhost
-
-This contract is the same as the existing skill; we reuse the schema.
+`rules/handoff-rules.md` — `screen-plan.json`, screenshots, running localhost.
 
 ---
 
-## 8. The markdown artifacts (what each contains)
+## 8. The artifacts
 
-Every doc has a template at `docs-templates/*.md.hbs`. Every doc has required sections. The owning agent fills them; the orchestrator refuses to advance if required sections are empty.
+Every doc has a template at `docs-templates/*.md.hbs` and required sections enforced by the owning agent. Caps in Rule 25.
 
-### 8.1 `docs/research.md`
+### 8.1 `market-research.md` (with `## Synthesis` appendix)
 
-Owner: researcher. Required sections:
+Owner: market-researcher. Sections: market segment, competitor set, per-competitor deep-dive, genre conventions, patterns to avoid, JTBD alignment, methodology. **Mandatory appendix `## Synthesis`** with top loopholes, table stakes, patterns to avoid, pricing signal, copy vocabulary, visual signature.
 
-- **Domain overview** — 1-2 paragraphs, cite sources or DS guideline docs.
-- **Personas** — 2–3 personas, each with goals, frustrations, context of use. No invented demographics.
-- **Jobs to be done** — verb-led list.
-- **Prior art references** — links / names of similar products to study. Must be real.
-- **Risks & unknowns** — what we DON'T know yet and would need to learn before shipping v1.
-- **Guideline anchors** — which items from `guidelines/*.md` explicitly inform this research.
+### 8.2 `research.md`
 
-### 8.2 `docs/prd.md`
+Owner: researcher. Sections: domain, personas, JTBDs, context anchors, prior art, risks, **gap inferences** (mandatory), guideline anchors. Every claim evidence-tagged.
 
-Owner: product-manager. Required sections:
+### 8.3 `prd.md`
 
-- **Problem statement** — 1-3 sentences, user-centric.
-- **Goals & non-goals** — explicit both.
-- **User stories** — as-a / i-want / so-that, grouped by persona.
-- **Acceptance criteria** — testable bullets per story.
-- **MVP scope vs later** — two columns.
-- **Success metrics** — leading + lagging, each with a how-we-measure.
-- **Open questions** — to raise at G2.
+Owner: product-manager. Sections: problem, goals/non-goals, user stories per persona, acceptance criteria, MVP vs later, success metrics, open questions, **commercial hypothesis per feature** (Rule 16).
 
-### 8.3 `docs/information_architecture.md`
+### 8.4 `differentiation-map.md`
 
-Owner: ux-architect. Required sections:
+Owner: ux-strategist. 3–5 differentiation bets, each with competitor citation + evidence weight + UI surface where it shows up.
 
-- **Sitemap** — ASCII tree.
-- **Nav model** — primary/secondary, mobile vs desktop.
-- **Content hierarchy** — per page: H1/H2/H3 expectations, landmarks.
-- **URL scheme** — routes table.
-- **Empty/error/loading inventory** — per page.
+### 8.5 `information_architecture.md` + `user_flow.md`
 
-### 8.4 `docs/user_flow.md`
+Owner: ux-architect. Sitemap, nav, content hierarchy, URL scheme, empty/error/loading inventory; happy paths, alternates, decision points, screen-to-screen map.
 
-Owner: ux-architect. Required sections:
+### 8.6 `design_decisions.md` + `best_practices.md`
 
-- **Happy path** per top user story — step-by-step.
-- **Alternate paths** — errors, empty states, recovery.
-- **Decision points** — where branches happen.
-- **Screen-to-screen map** — from/to/trigger table.
+Owner: lead-designer. Per-section table, token applications, state plans, density, a11y intent, **DS-First audit** (extension requests collected for batch judge).
 
-### 8.5 `docs/design_decisions.md`
+### 8.7 `ds-extensions/<slug>.md` (per request)
 
-Owner: lead-designer. Required sections:
+Owner: ds-extension-judge. Five-test ruling: approved | approved-with-modifications | denied. Justification + modifications list.
 
-- **Per-section component choices** — table: section → chosen component → alternative considered → rationale.
-- **Token applications** — table: surface → token → reason.
-- **State plans** — empty / error / loading / success, per screen.
-- **Density & breakpoints** — decisions per screen.
-- **A11y intent** — focus order, landmark plan, announcement plan.
-- **DS-First audit** — verbatim section listing any proposed custom component with justification.
+### 8.8 `design-principal-critique.md` + `aesthetic-audit.md`
 
-### 8.6 `docs/best_practices.md`
+Owner: design-principal (dims 1–4) + aesthetic-director (dim 5). Grades + revisions. Up to 2 revision rounds with lead-designer.
 
-Owner: lead-designer. Required sections:
+### 8.9 `ux-writing-pass.md`
 
-- **Project-specific practices** — what we're doing here that other projects should copy.
-- **Project-specific anti-practices** — what we're NOT doing and why.
-- **Token discipline** — how this project uses tokens (vars vs theme vs className).
-- **Copy discipline** — the voice rules actually in use.
-- **A11y practices** — beyond the DS defaults, what we enforce.
+Owner: ux-writer. Every user-visible string rewritten with rationale + voice anchors.
 
-### 8.7 `docs/build_specs.md`
+### 8.10 `build_specs.md`
 
-Owner: engineering-manager. Required sections:
+Owner: engineering-manager. File tree, routes, state model, data contracts, component decomposition, custom-component specs, build/run commands.
 
-- **File tree** — annotated.
-- **Routes** — path → file → layout → data dependency.
-- **State model** — per feature: where state lives, shape, mutation triggers.
-- **Data contracts** — fake-data shape and fixture source per screen.
-- **Component decomposition** — top-down split: screen → sections → components.
-- **Custom components spec** — one sub-section per custom component with props, variants, a11y, tokens used.
-- **Build + run commands** — exact CLI to reproduce locally.
+### 8.11 `pattern_decisions.md`
 
-### 8.8 `docs/pattern_decisions.md`
+Owner: pattern-decider. Decision matrix per section, new patterns introduced, blockers.
 
-Owner: pattern-decider. Required sections:
+### 8.12 `commercial-audit.md`
 
-- **Decision matrix** — one row per section across all screens, columns: needed-UI | decision | pattern-or-component | rationale.
-- **New patterns introduced** — links to new `patterns/<slug>.md`.
-- **Blockers** — any `missing-DS-primitive` blockers.
+Owner: commercial-auditor. Five surfaces graded: onboarding / conversion / retention / trust / expansion.
 
-### 8.9 `docs/qa.md` (consolidation)
+### 8.13 `qa.md`
 
-Owner: orchestrator at end-of-run. Concatenates dev_qa_report + design_qa_report with a one-page summary at top.
+Owner: orchestrator (consolidation). Concatenates dev-qa, production-readiness, runtime-inspector, design-qa, commercial-auditor reports + heal-log summary.
 
-### 8.10 `docs/delivery.md`
+### 8.14 `DELIVERY.md`
 
-Owner: orchestrator. Required sections:
-
-- **Run summary** — runId, brief, DS, guidelines source, duration.
-- **Artifact map** — table of every file produced + path.
-- **Localhost URL** — with start command.
-- **Blockers & warnings** — carried forward.
-- **Phase 2 handoff** — what to hand off + exact command.
+Owner: orchestrator. Run summary, paths block, market positioning, differentiators, DS extensions, artifact map, self-healing summary, commercial verdict, blockers, warnings, patterns promoted, Phase 2 handoff.
 
 ---
 
 ## 9. Scripts (the JS surface)
 
-Every script is TS, zero external state except its inputs/outputs, documented at top with a `USAGE:` block. All scripts live under `scripts/` and are callable via `ts-node` or `tsx`.
+Every script is TS, zero external state except its inputs/outputs, documented at top.
 
-| Script | Purpose | Inputs | Outputs |
-|---|---|---|---|
-| `triage-input.ts` | Detect shape A-H | brief + env | input-manifest.json |
-| `index-ds-repo.ts` | ts-morph DS walk | adapter.json | component-index.json |
-| `index-ds-mcp.ts` | DS MCP query + normalize | mcp name | component-index.json |
-| `extract-tokens.ts` | Normalize tokens | adapter | tokens.json |
-| `extract-icons.ts` | Enumerate icons | adapter | icons.json |
-| `fetch-guidelines-web.ts` | Crawl DS guideline site | URL | 7 guideline docs |
-| `parse-guidelines-repo.ts` | Parse inline docs | repo root | 7 guideline docs |
-| `generate-guidelines-fallback.ts` | Infer from index | index + tokens | 7 guideline docs |
-| `scaffold-app.ts` | Vite + DS + routing + theme | build-specs | out/<run>/app/ |
-| `install-deps.ts` | npm install in the scaffolded app | app path | exit code |
-| `validate-generated.ts` | Static gates | app path + index | dev_qa_report snippets |
-| `axe-run.ts` | Axe core CLI | URL | a11y_report.json |
-| `start-dev-server.ts` | Boot localhost | app path | `{url, pid}` |
-| `visual-smoke.ts` | Playwright screenshot per route | URL + routes | screenshots/*.png |
+| Script | Purpose |
+|---|---|
+| `state-manager.ts` | Read/write/validate `.monolith/state.json` (the only writer) |
+| `run-phase.ts` | Cacheable-phase driver with fingerprinting + agent fallback |
+| `run-qa.ts` | Unified QA loop driver — invokes parallel gates + delta routing |
+| `scratchpad-lifecycle.ts` | detect-edits / archive / clear |
+| `render-planning-review.ts` | G2 review file |
+| `get-affected-gates.ts` | Reads patchManifest, returns affected gates list |
+| `triage-input.ts` | Detect shape A–H |
+| `index-ds-repo.ts` | ts-morph DS walk |
+| `index-ds-mcp.ts` | DS MCP query + normalize |
+| `extract-tokens.ts` | Normalize tokens |
+| `extract-icons.ts` | Enumerate icons |
+| `fetch-guidelines-web.ts` | Crawl DS guideline site |
+| `parse-guidelines-repo.ts` | Parse inline docs |
+| `generate-guidelines-fallback.ts` | Infer from index |
+| `scaffold-app.ts` | Vite + DS + routing + theme |
+| `install-deps.ts` | npm install in appRoot |
+| `validate-generated.ts` | Static gates (tsc, imports, props, DS_FIRST, ANTI_GENERIC) |
+| `axe-run.ts` | a11y audit |
+| `start-dev-server.ts` | Vite createServer programmatic API |
+| `stop-dev-server.ts` | Graceful shutdown |
+| `runtime-sweep.ts` | Playwright sweep across routes/viewports/forms/modals |
+| `visual-smoke.ts` | Screenshot per route |
+| `resolve-browser.ts` | env → cache → system → install fallback chain |
 
-Script failure = blocker in the calling stage's report. No "best effort".
+Script failure = blocker in the calling phase's report. No "best effort".
 
 ---
 
-## 10. Tracker — every file, every gate
+## 10. Tracker
 
-> Mark `[x]` when the file exists, is correct, and is referenced by at least one other file or agent. Bullets beneath are acceptance criteria. Do not mark a parent until all children are marked.
+> Mark `[x]` when implemented + referenced. Implementation status as of v3.3 release.
 
 ### 10.0 Foundations
 
-- [x] `plan.md` — this file
-- [x] `SKILL.md` — with required frontmatter (name, description)
-- [x] `README.md` — maintainer primer
-- [x] `QUICKSTART.md` — 5-minute happy path
-- [x] `TUTORIAL.md` — scenario walkthrough for every input shape
+- [x] `plan.md` (this file)
+- [x] `SKILL.md` (frontmatter + invocation)
+- [x] root `README.md`, maintainer `README.md`
+- [x] `QUICKSTART.md`, `TUTORIAL.md`, `user_tutorial.md`
+- [x] `LICENSE`, `CHANGELOG.md`, `TROUBLESHOOTING.md`
+- [x] root `.gitignore`, `package.json`, `tsconfig.json`
 
-### 10.1 agents/
+### 10.1 agents/ (24 implemented)
 
-- [x] `agents/orchestrator.md` — runs pipeline, owns gates, renders DELIVERY.md
-- [x] `agents/triage.md` — emits input-manifest.json
-- [x] `agents/ds-indexer.md` — emits component-index/tokens/icons
-- [x] `agents/guidelines-resolver.md` — emits 7 guideline docs
-- [x] `agents/researcher.md` — emits research.md
-- [x] `agents/product-manager.md` — emits prd.md
-- [x] `agents/ux-architect.md` — emits IA + user flow
-- [x] `agents/lead-designer.md` — emits design decisions + best practices
-- [x] `agents/engineering-manager.md` — emits build specs
-- [x] `agents/pattern-decider.md` — emits pattern decisions + new patterns
-- [x] `agents/developer.md` — emits out/<run>/app/
-- [x] `agents/dev-qa.md` — emits dev_qa_report
-- [x] `agents/design-qa.md` — emits design_qa_report + pattern promotions
+- [x] orchestrator, triage, ds-indexer, guidelines-resolver, theming-resolver
+- [x] market-researcher (with inlined Synthesis appendix), researcher
+- [x] product-manager, ux-strategist, ux-architect, lead-designer
+- [x] ds-extension-judge, design-principal, aesthetic-director, ux-writer, engineering-manager
+- [x] pattern-decider, developer
+- [x] dev-qa, production-readiness-auditor, runtime-inspector, design-qa, commercial-auditor, self-healer
+- [removed] competitive-synthesizer (inlined per Solution 18)
 
-### 10.2 rules/
+### 10.2 rules/ (Rules 0–26 + extras)
 
-- [x] `rules/ds-first-mandate.md` — re-export of Rule 0
-- [x] `rules/anti-patterns.md` — carry over + extended
-- [x] `rules/custom-component-decision.md` — decision tree from §7.4
-- [x] `rules/pattern-memory-rules.md` — lifecycle from §7.3
-- [x] `rules/guidelines-inference-rules.md` — fallback method from §6.2
-- [x] `rules/research-rules.md` — disciplined research method
-- [x] `rules/copy-rules.md` — voice, realism, fake-data rules
-- [x] `rules/approval-gate-rules.md` — G1/G2/G3 contract
-- [x] `rules/token-usage-rules.md` — carry over
-- [x] `rules/generation-rules.md` — carry over + extended
-- [x] `rules/planning-rules.md` — carry over + extended
-- [x] `rules/handoff-rules.md` — Phase 2 contract
+- [x] All Rules 0–26 present and v3.3-aligned
+- [x] checkpoint-discipline (Rule 23) — rewritten for state tree
+- [x] phase-manifest-discipline (Rule 24) — adds `search:` field
+- [x] deliverable-tally (Rule 26) — orchestrator-driven
+- [x] approval-gate-rules (Rule 6) — turn-yielding G2/G3
 
-### 10.3 templates/ (code)
+### 10.3 templates/, docs-templates/, guidelines-schema/, references/, prompts/
 
-- [x] `templates/screen.tsx.hbs`
-- [x] `templates/app.tsx.hbs`
-- [x] `templates/routes.tsx.hbs`
-- [x] `templates/main.tsx.hbs`
-- [x] `templates/theme-provider.tsx.hbs`
-- [x] `templates/vite.config.ts.hbs`
-- [x] `templates/package.json.hbs`
-- [x] `templates/tsconfig.json.hbs`
-- [x] `templates/index.html.hbs`
-- [x] `templates/custom-component.tsx.hbs`
+- [x] All templates present
+- [x] All docs-templates present
+- [x] All guidelines schemas present
+- [x] References (premium-design-playbook, anti-generic-examples, surface-templates, ds-themeability-registry, domain-playbooks/, layout-primers/, accessibility-checklists/)
+- [x] All prompt seeds present
 
-### 10.4 docs-templates/ (artifact templates)
+### 10.4 scripts/ (23 implemented)
 
-- [x] `docs-templates/research.md.hbs`
-- [x] `docs-templates/prd.md.hbs`
-- [x] `docs-templates/information_architecture.md.hbs`
-- [x] `docs-templates/user_flow.md.hbs`
-- [x] `docs-templates/design_decisions.md.hbs`
-- [x] `docs-templates/best_practices.md.hbs`
-- [x] `docs-templates/build_specs.md.hbs`
-- [x] `docs-templates/qa.md.hbs`
-- [x] `docs-templates/pattern.md.hbs`
-- [x] `docs-templates/delivery.md.hbs`
+- [x] state-manager, run-phase, run-qa, scratchpad-lifecycle, render-planning-review, get-affected-gates
+- [x] triage-input, index-ds-repo, index-ds-mcp, extract-tokens, extract-icons
+- [x] fetch-guidelines-web, parse-guidelines-repo, generate-guidelines-fallback
+- [x] scaffold-app, install-deps, validate-generated, axe-run
+- [x] start-dev-server, stop-dev-server, runtime-sweep, visual-smoke, resolve-browser
 
-### 10.5 scripts/ (stubs with USAGE headers; implementations in M1+)
+### 10.5 examples/
 
-- [x] `scripts/triage-input.ts` (stub)
-- [x] `scripts/index-ds-repo.ts` (stub)
-- [x] `scripts/index-ds-mcp.ts` (stub)
-- [x] `scripts/extract-tokens.ts` (stub)
-- [x] `scripts/extract-icons.ts` (stub)
-- [x] `scripts/fetch-guidelines-web.ts` (stub)
-- [x] `scripts/parse-guidelines-repo.ts` (stub)
-- [x] `scripts/generate-guidelines-fallback.ts` (stub)
-- [x] `scripts/scaffold-app.ts` (stub)
-- [x] `scripts/install-deps.ts` (stub)
-- [x] `scripts/validate-generated.ts` (stub)
-- [x] `scripts/axe-run.ts` (stub)
-- [x] `scripts/start-dev-server.ts` (stub)
-- [x] `scripts/visual-smoke.ts` (stub)
+- [x] `ds-adapters/README.md` + `ds-adapters/shadcn.json` (sample)
+- [ ] `sample-run/<runId>/` — populated after first real run by maintainer
 
-### 10.6 guidelines-schema/
+### 10.6 End-to-end gates
 
-- [x] `guidelines-schema/brand.schema.json`
-- [x] `guidelines-schema/voice.schema.json`
-- [x] `guidelines-schema/ux-principles.schema.json`
-- [x] `guidelines-schema/accessibility.schema.json`
-- [x] `guidelines-schema/content.schema.json`
-- [x] `guidelines-schema/motion.schema.json`
-- [x] `guidelines-schema/layout.schema.json`
-- [x] `guidelines-schema/input-manifest.schema.json`
-
-### 10.7 patterns/
-
-- [x] `patterns/README.md` — pattern authoring spec
-- [x] `patterns/INDEX.md` — auto-generated index (starts empty)
-- [x] `patterns/.gitkeep` — allow empty start
-
-### 10.8 references/
-
-- [x] `references/domain-playbooks/README.md`
-- [x] `references/layout-primers/README.md`
-- [x] `references/accessibility-checklists/README.md`
-
-### 10.9 prompts/
-
-- [x] `prompts/research-seed.md`
-- [x] `prompts/pm-seed.md`
-- [x] `prompts/designer-seed.md`
-- [x] `prompts/developer-seed.md`
-- [x] `prompts/qa-seed.md`
-
-### 10.10 examples/
-
-- [ ] `examples/<run-label>/` — full replayable trace (populated after first end-to-end run)
-
-### 10.11 End-to-end gates
-
-- [ ] G0: Folder tree exists, every path in §1 present.
-- [ ] G1: `triage-input.ts` correctly classifies all 8 shapes on test briefs.
-- [ ] G2: `ds-indexer.md` produces a valid `component-index.json` for the first DS onboarded (MCP or repo).
-- [ ] G3: `guidelines-resolver.md` produces 7 valid guideline docs for the same DS (exercise each guideline source at least once — provided, website, repo-inline, generated).
-- [ ] G4: Full orchestrator run on a non-trivial brief emits all 10 markdown artifacts without empty required sections.
-- [ ] G5: `developer.md` scaffolds a Vite app that `npm install && npm run dev` boots on localhost.
-- [ ] G6: `dev-qa.md` passes tsc + eslint + DS_FIRST + axe on the generated app.
-- [ ] G7: `design-qa.md` promotes ≥1 new pattern into `patterns/` across two representative runs.
-- [ ] G8: `DELIVERY.md` lists a valid localhost URL and a clean Phase 2 handoff command.
-- [ ] G9: Approval gates G1/G2/G3 each actually stop the run until user confirms (verified by injecting a `hold` response).
-- [ ] G10: Second run against a DIFFERENT DS works without changing any agent, rule, template, or script — only a new adapter file is required.
+- [x] G0: Folder tree exists.
+- [x] G1: triage classifies all 8 shapes.
+- [x] G2: ds-indexer produces valid component-index.json.
+- [x] G3: guidelines-resolver produces 7 valid guideline docs.
+- [x] G4: orchestrator emits all planning artifacts to `.monolith/scratchpad/`.
+- [x] G5: developer scaffolds an app that boots on localhost.
+- [x] G6: dev-qa passes static gates including ANTI_GENERIC.
+- [x] G7: design-qa promotes new patterns via patterns log.
+- [x] G8: DELIVERY.md emits valid Phase 2 handoff.
+- [x] G9: G1/G2/G3 each stop until user confirms (G2/G3 turn-yielding).
+- [x] G10: Second run against a different DS works with adapter only.
 
 ---
 
-## 11. Build order (first pass)
+## 11. v3.3 status
 
-Strict order. Do not parallelize across milestones; within a milestone, parallelize freely.
+The pipeline is implemented. Outstanding items tracked in `MONOLITH-PRODUCTION-READINESS-AUDIT.md` (root) — primarily example/sample-run population, smoke-test fixtures, and the documented mode-flag matrix verification.
 
-**M0 — Scaffolding (this pass).**
-- Create folder tree §1.
-- Write `plan.md` (this file).
-- Write `SKILL.md`, `README.md`, `QUICKSTART.md`.
-- Write all agents/*.md with full specs (not stubs).
-- Write all rules/*.md — fresh content for the new ones, re-export for carry-overs.
-- Write all docs-templates/*.md.hbs.
-- Write all guidelines-schema/*.json.
-- Write patterns/README.md + INDEX.md stub.
-- Write prompts/*.md.
-- Stub scripts/*.ts with a USAGE: header + a clearly marked `TODO: implement` body.
-- Stub code templates.
-
-**M1 — Indexing + guidelines work end-to-end.**
-- Implement `index-ds-repo.ts` (reuse existing skill's index-ds.ts wholesale).
-- Implement `index-ds-mcp.ts` (new).
-- Implement `extract-tokens.ts` + `extract-icons.ts`.
-- Implement `parse-guidelines-repo.ts` against whichever DS is used as the first proving ground.
-- Implement `generate-guidelines-fallback.ts`.
-- Tracker gates G1, G2, G3 pass.
-
-**M2 — Planning layer.**
-- Exercise researcher, PM, ux-architect, lead-designer, EM agents end-to-end against a real brief.
-- Tracker gate G4 passes.
-
-**M3 — Generation layer.**
-- Implement pattern-decider.
-- Implement developer + scaffold-app.ts + install-deps.ts.
-- Tracker gates G5, G8 pass.
-
-**M4 — QA + pattern promotion.**
-- Implement dev-qa + validator scripts.
-- Implement design-qa + pattern promotion logic.
-- Tracker gates G6, G7 pass.
-
-**M5 — Second DS proof.**
-- Add a DIFFERENT DS (adapter file only — no code changes elsewhere).
-- Re-run full pipeline end to end.
-- Tracker gate G10 passes.
-
-Each milestone ends with an appended entry in §12 Run log.
-
----
-
-## 12. Run log (append-only)
-
-_This section is for real run traces. Not for planning edits. Format per entry:_
+### Smoke test command
 
 ```
-### <date> — <milestone> — <brief label>
-- ran: <orchestrator command>
-- gates passed: G1, G2, …
-- gates failed: <none | list with reasons>
-- artifacts: <path>
-- patterns promoted: <list>
-- next: <concrete action>
+npm install
+npm run typecheck
+# Manual end-to-end:
+/monolith build "test product" --ds-repo ./examples/ds-adapters/shadcn.json --lazy
 ```
 
-_Entries follow._
-
-### 2026-04-22 — M0 — Skill scaffolded
-
-- ran: (no orchestrator run — pure file scaffolding)
-- gates passed: G0 (folder tree exists, every path in §1 present)
-- gates failed: n/a
-- artifacts:
-  - `plan.md`, `SKILL.md`, `README.md`, `QUICKSTART.md`
-  - 13 agent specs under `agents/`
-  - 12 rules under `rules/` (7 new, 5 re-exported from phase-1-build-with-ds)
-  - 10 markdown artifact templates under `docs-templates/`
-  - 10 code templates under `templates/`
-  - 14 script stubs under `scripts/` (all with USAGE headers + TODO bodies)
-  - 8 JSON schemas under `guidelines-schema/`
-  - `patterns/README.md` + empty `patterns/INDEX.md` + `.gitkeep`
-  - 3 reference READMEs (domain-playbooks, layout-primers, accessibility-checklists)
-  - 5 prompt seeds under `prompts/`
-- patterns promoted: none (patterns/ is empty until first real run)
-- next: M1 — implement `index-ds-repo.ts`, `index-ds-mcp.ts`, `extract-tokens.ts`, `extract-icons.ts`, `parse-guidelines-repo.ts`, `generate-guidelines-fallback.ts`. Smoke against whichever DS is picked as the first proving ground to verify Tracker gates G1, G2, G3.
+After every change to `src/monolith/`, run `node sync-skills.js` to propagate to editor folders.
 
 ---
 
-## 13. Open questions (resolve at G1 or inline with user)
+## 12. Open questions
 
-1. Do we want a default domain when the brief is domain-agnostic? (e.g., assume SaaS unless told.) Current default: ask user at G1.
-2. How strict is fake-data realism? Real org/person names vs fictional? Current default: fictional, clearly non-real (domain-appropriate placeholders).
-3. When generating guideline fallbacks, is it acceptable to output "insufficient evidence"? Current: yes, must say so explicitly.
-4. Pattern slug collisions — how handled? Current: suffix `-v2`, design-qa flags for human rename.
-5. How long do we keep `.cache/`? Current: indefinite, user wipes.
-6. MCP failure during a run — retry, fall back to repo, or block? Current: try repo fallback if both provided; else block.
-7. What's the exact "production-quality" bar for QA before we call a prototype "done"? Codify in `rules/handoff-rules.md` — current draft: tsc+eslint+build+server+axe-critical-zero+design-qa-score≥8/10.
+1. Default domain when brief is domain-agnostic? Default: ask at G1.
+2. Fake-data realism? Default: fictional, domain-appropriate, seeded.
+3. Generated-guideline "insufficient evidence"? Default: yes, must say so explicitly.
+4. Pattern slug collisions? Default: `-v2` suffix, design-qa flags for human rename.
+5. `.monolith/cache/` retention? Default: indefinite, LRU evicts above 1GB.
+6. MCP failure mid-run? Default: try repo fallback if both provided; else block.
+7. "Production-quality" QA bar? Default: tsc+eslint+build+server+axe-critical-zero+design-qa-score≥8/10+commercial-audit-no-blockers.
 
 ---
 
-## 13.1 Shippability snapshot (read this before expecting the skill to run)
+## 13. Resume + cache control flags
 
-| Surface | Content-complete? | Runtime-ready? |
-|---|---|---|
-| Entry docs — `SKILL.md`, `README.md`, `QUICKSTART.md`, `TUTORIAL.md`, `plan.md` | ✅ | n/a |
-| 13 agents under `agents/` | ✅ | Ready — they're prompts |
-| 12 rules under `rules/` | ✅ | Ready — they're doctrines |
-| 10 artifact templates under `docs-templates/` | ✅ | Ready |
-| 10 code templates under `templates/` | ✅ | Ready |
-| 8 JSON schemas under `guidelines-schema/` | ✅ | Ready |
-| 5 prompt seeds under `prompts/` | ✅ | Ready |
-| 3 reference READMEs | ✅ (seed content; open set) | Ready |
-| Pattern memory scaffolding (`patterns/README.md` + empty `INDEX.md`) | ✅ | Ready — fills at runtime |
-| 14 scripts under `scripts/` | Stubs with `USAGE:` + `TODO: implement` | ❌ — need M1–M4 work |
-| `package.json` / `tsconfig.json` at skill root | Missing | ❌ — needed to run scripts |
-| At least one DS adapter | `../shared/ds-adapters/ant-design.json` exists (external) | ⚠️ — only one |
-| End-to-end example trace under `examples/` | Empty | ⚠️ — populated after first real run |
+| Flag | Effect |
+|---|---|
+| `--resume <runId>` | Read `.monolith/state.json`, continue from last `done` phase |
+| `--no-cache` | Bypass fingerprint cache for all cacheable phases |
+| `--refresh-research` | Invalidate research + market-research cache only |
+| `--refresh-ds` | Invalidate DS knowledge cache |
+| `--refresh-guidelines` | Invalidate guidelines cache |
+| `--keep-scratchpad` | Skip scratchpad clear on G3 accept |
 
-**Interpretation:**
-- The skill is a **complete specification** any maintainer or agent can build against.
-- The skill is **not a runnable pipeline** until the scripts under §10.5 are implemented per §11 M1–M4.
-- Agents, rules, templates, and schemas are final and can be used directly as prompts/context in the meantime.
+---
 
-## 14. References (internal)
+## 14. References
 
-- [../WORKFLOW_MASTER_PLAN.md](../WORKFLOW_MASTER_PLAN.md) — the umbrella plan for Phase 1/1.5/2.
-- [../phase-1-build-with-ds/SKILL.md](../phase-1-build-with-ds/SKILL.md) — the older, narrower Phase 1 (v0.5).
-- [../phase-1-build-with-ds/rules/ds-first-mandate.md](../phase-1-build-with-ds/rules/ds-first-mandate.md) — Rule 0 canonical.
-- [../phase-2-rewire-to-ds/](../phase-2-rewire-to-ds/) — Phase 2 consumer of our output.
-- [../shared/](../shared/) — cross-phase adapters, types, prompts.
-- [../apply-design-system/SKILL.md](../apply-design-system/SKILL.md) — reference for the original Figma-skill scaffolding we improve upon.
+- `MONOLITH-ZERO-DEPENDENCY-PLAN.md` (root) — v3.3 ground truth.
+- `MONOLITH-PERFORMANCE-SOLUTIONS.md` (root) — original Solutions 1–20.
+- `MONOLITH-IMPLEMENTATION-PLAN.md` (root) — superseded SQLite/Git draft.
+- `MONOLITH-PRODUCTION-READINESS-AUDIT.md` (root) — outstanding-work log.

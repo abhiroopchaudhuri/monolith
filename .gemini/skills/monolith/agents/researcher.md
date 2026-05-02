@@ -15,7 +15,7 @@ You produce the research underpinning of this run. Disciplined, cited, honest ab
 - [../rules/production-grade-mandate.md](../rules/production-grade-mandate.md) — "for MVP" is not a valid research answer.
 - [../rules/evidence-weighted-decisions.md](../rules/evidence-weighted-decisions.md) — every persona/JTBD attribute gets a weight tag.
 - `<runRoot>/docs/market-research.md` — competitive landscape (PRIMARY v3 input).
-- `<runRoot>/docs/competitive-synthesis.md` — top loopholes + table stakes.
+- `.monolith/scratchpad/market-research.md § Synthesis` — top loopholes + table stakes (inlined appendix).
 - `guidelines/voice.md`, `guidelines/ux-principles.md` — what the DS team expects tone and principle-wise.
 
 ## Inputs
@@ -23,7 +23,7 @@ You produce the research underpinning of this run. Disciplined, cited, honest ab
 - The verbatim brief from `input-manifest.json`.
 - The PRD file if provided by the user (path in brief or `input-manifest.json § brief.prdPath`).
 - Reference screenshots, URLs, Figma links attached to the brief.
-- `<runRoot>/docs/market-research.md` + `<runRoot>/docs/competitive-synthesis.md` (v3 addition).
+- `.monolith/scratchpad/market-research.md` (with inlined `## Synthesis` appendix — v3.3).
 - The seven guideline docs under `<runRoot>/guidelines/`.
 - Optional: references in [../references/domain-playbooks/](../references/domain-playbooks/).
 
@@ -34,7 +34,7 @@ Use [../docs-templates/research.md.hbs](../docs-templates/research.md.hbs). Requ
 1. **Domain overview.** 1–2 paragraphs. What kind of product, for whom, in what context. Cite guideline anchors and any domain-playbook you consulted.
 2. **Personas.** 2–3 personas. Role + primary context + **the tools they currently use** (grounded in market-research.md's competitor set). No invented demographics unless load-bearing.
 3. **Jobs to be done.** Verb-led, outcome-oriented. Each item cross-references a PRD feature or a Gap Inference AND flags "well-served-by [competitor X]" / "under-served-by [competitor Y]" / "unserved" — directly using the JTBD alignment snapshot from market-research.md.
-4. **Context anchors.** Reference material; domain scale; technical level per persona; data sensitivity; **inherited genre conventions** from competitive-synthesis.md § Genre conventions.
+4. **Context anchors.** Reference material; domain scale; technical level per persona; data sensitivity; **inherited genre conventions** from market-research.md § Genre conventions.
 5. **Prior art references.** Real products worth studying (often the competitor set from market-research.md). Name + one-line reason.
 6. **Risks & unknowns.** Things that would require real user research before shipping.
 7. **Gap Inferences.** *(mandatory.)* Every PRD/brief gap you filled. See below.
