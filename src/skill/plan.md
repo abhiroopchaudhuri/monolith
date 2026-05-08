@@ -8,7 +8,17 @@
 
 ## 0. Version history (read first)
 
-### v3.3 — Performance + zero-dependency (current)
+### v3.4 — Context recovery (current)
+
+Fixes the pipeline losing its execution frame when the AI session context is compacted.
+
+1. **Rule 27 — Context recovery.** Three-layer defense: RESUME.md breadcrumb written after every phase, orchestrator pre-flight check that auto-detects in-progress runs, per-turn recovery signal footer in every output.
+2. **RESUME.md breadcrumb.** `.monolith/RESUME.md` is written and updated on every phase transition. Contains runId, current phase, next action, and quick-resume command. Deleted on G3 `accept`.
+3. **Orchestrator pre-flight.** Before step 0, the orchestrator checks `.monolith/state.json`. If `status === "in-progress"` it auto-resumes without requiring `--resume`. Compaction heuristic: in-progress state + continuation cue → auto-resume.
+4. **Per-turn recovery signal.** Every orchestrator output ends with `[PIPELINE: <runId> | Phase: <N> | Done: N/17]`. This line survives into compacted summaries and gives the next AI context a parseable resume anchor.
+5. **Atomic state writes + bak.** `state-manager.ts` now writes `.monolith/state.json.bak` before each write and uses atomic rename.
+
+### v3.3 — Performance + zero-dependency
 
 The big rewrite. Same output quality, ~80% faster, no system-level dependencies.
 
@@ -561,7 +571,7 @@ Every script is TS, zero external state except its inputs/outputs, documented at
 
 | Script | Purpose |
 |---|---|
-| `state-manager.ts` | Read/write/validate `.monolith/state.json` (the only writer) |
+| `state-manager.ts` | Read/write/validate `.monolith/state.json` (the only writer); atomic write + bak; `writeResumeBreadcrumb()` |
 | `run-phase.ts` | Cacheable-phase driver with fingerprinting + agent fallback |
 | `run-qa.ts` | Unified QA loop driver — invokes parallel gates + delta routing |
 | `scratchpad-lifecycle.ts` | detect-edits / archive / clear |
@@ -612,13 +622,14 @@ Script failure = blocker in the calling phase's report. No "best effort".
 - [x] dev-qa, production-readiness-auditor, runtime-inspector, design-qa, commercial-auditor, self-healer
 - [removed] competitive-synthesizer (inlined per Solution 18)
 
-### 10.2 rules/ (Rules 0–26 + extras)
+### 10.2 rules/ (Rules 0–27 + extras)
 
 - [x] All Rules 0–26 present and v3.3-aligned
 - [x] checkpoint-discipline (Rule 23) — rewritten for state tree
 - [x] phase-manifest-discipline (Rule 24) — adds `search:` field
 - [x] deliverable-tally (Rule 26) — orchestrator-driven
 - [x] approval-gate-rules (Rule 6) — turn-yielding G2/G3
+- [x] context-recovery (Rule 27) — RESUME.md breadcrumb + pre-flight check + per-turn recovery signal (v3.4)
 
 ### 10.3 templates/, docs-templates/, guidelines-schema/, references/, prompts/
 

@@ -4,6 +4,90 @@ You are the conductor. You do not write artifacts yourself — you invoke specia
 
 ---
 
+## Pre-flight check (runs BEFORE step 0 — before anything else)
+
+Context compaction can strip the active pipeline execution frame from conversation memory. **You must guard against this on every invocation.**
+
+```
+PRE-FLIGHT (mandatory, runs before step 0):
+
+1. Check if `.monolith/state.json` exists.
+2. If it exists:
+   a. Read state.meta.status.
+   b. If status === "in-progress":
+      → Display RECOVERY BANNER (below).
+      → Execute resume protocol: find first non-"done" phase in state.phases, continue from there.
+      → Do NOT re-initialize state.json. Skip step 0 entirely.
+   c. If status === "completed" or "aborted":
+      → Prior run is done. Proceed as a new run (step 0 as normal).
+3. If .monolith/state.json does not exist:
+   → No active run. Proceed with step 0 as normal.
+```
+
+**RECOVERY BANNER** (print this when in-progress run is detected):
+```
+[CONTEXT RECOVERY DETECTED]
+
+Found an active monolith run that was interrupted.
+
+Run ID:      <state.meta.runId>
+Brief:       <state.input.manifest.brief>
+Started:     <state.meta.createdAt>
+Last phase:  <last "done" phase>
+Resuming →   <first non-"done" phase>
+
+Continuing pipeline from last completed phase...
+─────────────────────────────────────────────────
+```
+
+After displaying the banner, resume silently. Do NOT ask the user to re-invoke `/monolith --resume`.
+
+**Context compaction heuristic.** Even without an explicit `--resume` flag, auto-resume if ALL three are true simultaneously: (1) `.monolith/state.json` shows `status === "in-progress"`, (2) the current conversation has no prior step-by-step orchestrator log from this run, (3) the user's message is a continuation cue ("continue", "proceed", "ok", "go", "resume", "yes"). Rule 27 governs the full protocol.
+
+---
+
+## Per-turn recovery signal footer (mandatory)
+
+**Every orchestrator output turn MUST end with this footer** (one line, after a blank line):
+
+```
+[PIPELINE: <runId> | Phase: <currentPhase> | Done: <N>/17] — to resume after context loss: /monolith --resume <runId>
+```
+
+This footer is plain text in your output — not inside a tool call — so it survives into compacted summaries and gives the next context a machine-parseable resume anchor.
+
+---
+
+## RESUME.md breadcrumb (mandatory)
+
+After EVERY phase status transition, write `.monolith/RESUME.md` via `stateManager.writeResumeBreadcrumb()`:
+
+```markdown
+<!-- MONOLITH_PIPELINE_ACTIVE -->
+# Active Monolith Run — Context Recovery Required
+
+> An active monolith pipeline is in progress. Do NOT write code directly.
+> Do NOT skip the orchestrator. Resume the pipeline instead.
+
+Run ID:       <runId>
+Brief:        <brief>
+Started:      <createdAt>
+Status:       IN_PROGRESS
+Phase:        <currentPhase> (<N> of 17 done)
+Last done:    <lastDonePhase>
+Next action:  <nextPendingAction>
+Gate waiting: <activeGate or "none">
+
+Quick resume: /monolith --resume <runId>
+
+State file:   .monolith/state.json
+Orchestrator: <workflowRoot>/agents/orchestrator.md
+```
+
+Write timing: after `stateManager.init()` (step 0), after each phase completes, when entering/exiting each gate. Delete on G3 `accept` (run complete, nothing to recover).
+
+---
+
 ## What you own
 
 1. **Path resolution** (before anything else runs):
@@ -15,6 +99,8 @@ You are the conductor. You do not write artifacts yourself — you invoke specia
    See [rules/output-location-rules.md](../rules/output-location-rules.md).
 
 2. **The state tree**: `.monolith/state.json` — your brain. Read it. Write it. All agents depend on it.
+
+2b. **The recovery breadcrumb**: `.monolith/RESUME.md` — written after every phase transition via `stateManager.writeResumeBreadcrumb()`. Survives context compaction. Deleted on G3 `accept`. See Rule 27.
 
 3. **Three approval gates**: G1 (input), G2 (plan), G3 (delivery). G2 and G3 use **turn-yielding** — you output a message and STOP. No background work. The user replies on the next turn.
 
@@ -39,9 +125,9 @@ You are the conductor. You do not write artifacts yourself — you invoke specia
 ## The run (v3 pipeline)
 
 ```
- 0. resolve paths → init .monolith/state.json
- 1. triage                       → write state.phases.triage
- 2. ≫ APPROVAL GATE 1 — INPUT ≪  → show manifest, STOP, await user reply
+ 0. resolve paths → init .monolith/state.json → write .monolith/RESUME.md (first write)
+ 1. triage                       → write state.phases.triage → update RESUME.md
+ 2. ≫ APPROVAL GATE 1 — INPUT ≪  → update RESUME.md (gate: waiting-g1) → show manifest, STOP, await user reply
 
   3. CACHEABLE PHASES (fingerprint check + skip if unchanged):
      For each phase in {dsIndexer, guidelinesResolver, marketResearcher}:
@@ -185,6 +271,8 @@ Agents do NOT write state directly. They declare outputs in their response, and 
 
 Show: the whole `input-manifest.json`, pretty-printed. Highlight `unresolved[]`, `appRoot`.
 
+**Before stopping:** write `state.meta.activeGate = "g1"` and update `.monolith/RESUME.md`.
+
 **Then STOP.** Output:
 ```
 [G1 — Input Review]
@@ -204,6 +292,8 @@ Reply with:
 ### G2 — Plan (v3)
 
 **After** `engineering-manager` completes, call `scripts/render-planning-review.ts` to generate `.monolith/scratchpad/PLANNING_REVIEW.md`.
+
+**Before stopping:** write `state.meta.activeGate = "g2"` and update `.monolith/RESUME.md`.
 
 **Then STOP.** Output:
 ```
@@ -227,15 +317,18 @@ Reply with:
 ```
 
 **On next turn:**
-1. Run: `tsx scripts/scratchpad-lifecycle.ts detect-edits --state .monolith/state.json`
+1. Write `state.meta.activeGate = "none"` to clear gate status.
+2. Run: `tsx scripts/scratchpad-lifecycle.ts detect-edits --state .monolith/state.json`
    - Exit 0 = no edits, proceed to `pattern-decider`
    - Exit 2 = edits detected, prints list of dirty artifacts
-2. If edits detected → set those phases to "pending", re-run them and all downstream
-3. If no changes → proceed to `pattern-decider`
+3. If edits detected → set those phases to "pending", re-run them and all downstream
+4. If no changes → proceed to `pattern-decider`
 
 ### G3 — Delivery (v3)
 
 After QA converges, render `DELIVERY.md`.
+
+**Before stopping:** write `state.meta.activeGate = "g3"` and update `.monolith/RESUME.md`.
 
 **Then STOP.** Output:
 ```
@@ -261,7 +354,8 @@ Reply with:
 1. `tsx scripts/scratchpad-lifecycle.ts archive --runId <runId> --state .monolith/state.json`
 2. `tsx scripts/scratchpad-lifecycle.ts clear --state .monolith/state.json`
 3. Write `state.meta.status = "completed"` via stateManager
-4. Print Phase 2 handoff
+4. Delete `.monolith/RESUME.md` (run is complete; nothing to recover)
+5. Print Phase 2 handoff
 
 ---
 
@@ -314,9 +408,14 @@ On invocation:
 6. If --resume <runId>:
      a. Read existing .monolith/state.json
      b. Verify state.meta.runId matches
-     c. Continue from the last phase whose status != "done"
+     c. Continue from the first phase whose status != "done"  ← resume protocol (Rule 27 Part 7)
+   Else if .monolith/state.json exists AND state.meta.status === "in-progress":
+     → Auto-detected context recovery (Rule 27 pre-flight).
+     → Treat as implicit --resume <state.meta.runId>.
+     → Do NOT call stateManager.init() — the state tree is already live.
    Else:
      Init .monolith/state.json via stateManager.init(runId, brief)
+     Write .monolith/RESUME.md via stateManager.writeResumeBreadcrumb()
 7. appName resolved by triage → appRoot = workspaceRoot + "/" + appName
 ```
 
@@ -353,7 +452,9 @@ Set the parsed flags into `state.meta.flags` so cacheable-phase scripts can read
 | Self-healing loop fails convergence (attempt 5) | Write escalation; block at G3. |
 | User refuses a gate | Terminate cleanly. Leave state.json intact. |
 | Path violation | Abort write, log blocker, continue. |
-| State.json corrupted | Rebuild from scratchpad files (best-effort). |
+| State.json corrupted | Try `.monolith/state.json.bak`. If both fail: BLOCK — do not reconstruct. |
+| Context compacted mid-run | Pre-flight detects in-progress state.json → auto-resume (Rule 27). |
+| User says "continue" after context loss | Apply Rule 27 heuristic — if state=in-progress + continuation cue, auto-resume. |
 
 ---
 

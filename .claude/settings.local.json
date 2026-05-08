@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm pack *)",
       "Read(//tmp/**)",
-      "Bash(node \"C:/Users/mintb/Desktop/Dev/monolith-skill/bin/monolith.js\" init)"
+      "Bash(node \"C:/Users/mintb/Desktop/Dev/monolith-skill/bin/monolith.js\" init)",
+      "Bash(node sync-skills.js)"
     ]
   }
 }
