@@ -4,7 +4,9 @@
       "Bash(npm pack *)",
       "Read(//tmp/**)",
       "Bash(node \"C:/Users/mintb/Desktop/Dev/monolith-skill/bin/monolith.js\" init)",
-      "Bash(node sync-skills.js)"
+      "Bash(node sync-skills.js)",
+      "Bash(npm whoami *)",
+      "Bash(npm publish *)"
     ]
   }
 }
