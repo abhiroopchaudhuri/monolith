@@ -1,6 +1,6 @@
 {
   "name": "monolith-skill",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "End-to-end AI agent workflow that turns a one-line product brief into a market-grade React app against any design system. Drop-in skill for Claude Code, Cursor, OpenCode, Gemini CLI, Trae, Windsurf, Kiro, and Aider.",
   "type": "module",
   "bin": {

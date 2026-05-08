@@ -162,6 +162,7 @@ Five `[↻]` self-healing loops. Max 5 iterations per gate. Hard-block with esca
 **Resume:**
 
 - `--resume <runId>` — read `.monolith/state.json` and continue from the last `done` phase. Scratchpad must still exist.
+- **Auto-resume** — if the orchestrator detects an in-progress run in `.monolith/state.json` on startup (or on a continuation cue after context compaction), it resumes automatically without requiring `--resume`. See Rule 27.
 
 **Scratchpad:**
 
@@ -209,6 +210,9 @@ Workflow discipline (v3.2 — stabilizes weaker LLMs):
 - **Rule 24** — Phase manifest discipline. [rules/phase-manifest-discipline.md](rules/phase-manifest-discipline.md) — every agent declares `reads:` / `writes:` in its frontmatter.
 - **Rule 25** — Artifact size cap. [rules/artifact-size-cap.md](rules/artifact-size-cap.md) — 10K tokens per planning artifact; compression over prose.
 - **Rule 26** — Deliverable tally discipline. [rules/deliverable-tally.md](rules/deliverable-tally.md) — agents declare a `📋 Outputs` block; the orchestrator computes and prints the running tally from `state.artifacts`.
+
+Context recovery (v3.4 — survives context compaction):
+- **Rule 27** — Context recovery. [rules/context-recovery.md](rules/context-recovery.md) — the orchestrator writes `.monolith/RESUME.md` after every phase, performs a pre-flight check on startup, and appends a one-line recovery signal to every output turn. When context is compacted, the next invocation auto-detects the in-progress run and resumes without user intervention.
 
 Supporting references (read-only):
 - [references/premium-design-playbook.md](references/premium-design-playbook.md) — visual knowledge base.

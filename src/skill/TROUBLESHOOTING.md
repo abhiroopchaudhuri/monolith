@@ -103,6 +103,37 @@ Check `tsx scripts/scratchpad-lifecycle.ts archive --runId <id> --state .monolit
 ### Localhost URL returns 404 for a route
 Run `runtime-inspector` again on the route. The unified QA loop should have caught it; if it's missing, verify `runtime-sweep.ts` is wired to the patchManifest.
 
+## Context compaction / session lost mid-run
+
+### The AI stopped following the pipeline and started writing code directly
+
+This is the context compaction failure mode. When the conversation hits context limits, the session summary replaces the live pipeline state with plain text like "The build is approximately 40% complete." The AI reads this as a task handoff and writes code directly.
+
+**What should happen automatically (v3.4+):**
+The orchestrator's pre-flight check reads `.monolith/state.json` and auto-resumes if it finds `status === "in-progress"`. You should see `[CONTEXT RECOVERY DETECTED]` in the output.
+
+**If auto-recovery didn't trigger:**
+1. Look for `.monolith/RESUME.md` — it contains the runId and last active phase.
+2. Invoke the skill explicitly: `/monolith --resume <runId>`
+3. The orchestrator will re-display the gate message or continue from the last completed phase.
+
+**If `.monolith/RESUME.md` is missing but `state.json` exists:**
+The run was on an older version without Rule 27. Resume manually:
+1. Open `.monolith/state.json`.
+2. Find `state.meta.runId` and the last phase with `"status": "done"`.
+3. Invoke: `/monolith --resume <runId>`
+
+**If both files are missing:**
+The run cannot be resumed. Start fresh.
+
+### I resumed but the orchestrator re-ran phases that were already done
+
+`state.phases.<name>.status` for those phases should be `"done"`. If it's `"pending"` or `"active"`, those phases re-run as designed. Check `state.json` to confirm — the phase with `"status": "active"` when context was lost will re-run from scratch (intended: mid-execution state can't be partially recovered).
+
+### The per-turn footer `[PIPELINE: ...]` is missing from orchestrator output
+
+The orchestrator is not following Rule 27. File an issue — the footer is required on every turn and must not be omitted even at gates.
+
 ## Resume
 
 ### `--resume <runId>` does nothing

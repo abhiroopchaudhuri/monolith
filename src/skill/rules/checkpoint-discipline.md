@@ -20,7 +20,7 @@ Key branches:
 
 | Branch | What it holds |
 |---|---|
-| `meta` | runId, version, status, timestamps |
+| `meta` | runId, version, status, timestamps, activeGate ("none" \| "g1" \| "g2" \| "g3") |
 | `input.manifest` | the user brief + detected inputs |
 | `phases.<name>` | per-phase status + checkpoint summary + fingerprint |
 | `artifacts.<name>` | artifact metadata (summary, fullPath under `.monolith/scratchpad/`, tokenCount, lastModified) |
@@ -33,6 +33,8 @@ Key branches:
 | `cache` | content-addressable cache metadata |
 
 **The orchestrator is the sole writer to `state.json`.** Sub-agents declare their outputs in their response; the orchestrator interprets those declarations and writes the tree via `scripts/state-manager.ts`.
+
+`state-manager.ts` writes atomically (tmp → rename) and keeps a `.monolith/state.json.bak` one write behind. See Rule 27 Part 8 for the recovery fallback order.
 
 ---
 
